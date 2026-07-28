@@ -1,7 +1,7 @@
 import { Check, LayoutGrid, Plus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-export default function ModalNuevoProyecto({ isOpen, onClose, onCrear, colorOptions }) {
+export default function ModalNuevoProyecto({ isOpen, onClose, onCrear, colorOptions, isSubmitting = false, submitError = '' }) {
   const [nombre, setNombre] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [color, setColor] = useState(colorOptions[0].value)
@@ -20,7 +20,7 @@ export default function ModalNuevoProyecto({ isOpen, onClose, onCrear, colorOpti
     return null
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!nombre.trim()) {
@@ -28,7 +28,8 @@ export default function ModalNuevoProyecto({ isOpen, onClose, onCrear, colorOpti
       return
     }
 
-    onCrear({ nombre, descripcion, color })
+    setError('')
+    await onCrear({ nombre, descripcion, color })
   }
 
   return (
@@ -62,9 +63,9 @@ export default function ModalNuevoProyecto({ isOpen, onClose, onCrear, colorOpti
         </div>
 
         <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-          {error ? (
+          {error || submitError ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-[#E53E3E]" style={{ fontFamily: 'Nunito, sans-serif' }}>
-              {error}
+              {error || submitError}
             </div>
           ) : null}
 
@@ -153,11 +154,12 @@ export default function ModalNuevoProyecto({ isOpen, onClose, onCrear, colorOpti
             </button>
             <button
               type="submit"
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition"
+              disabled={isSubmitting}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70"
               style={{ background: 'linear-gradient(135deg, #6d5bd0 0%, #3a2f8f 100%)' }}
             >
               <Plus className="h-4 w-4" />
-              Crear proyecto
+              {isSubmitting ? 'Creando...' : 'Crear proyecto'}
             </button>
           </div>
         </form>
