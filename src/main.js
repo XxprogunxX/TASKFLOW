@@ -1,9 +1,9 @@
+import { createElement } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App.jsx'
 import './style.css'
 
-document.querySelector('#app').innerHTML = `
-  <main class="app-shell">
-    <h1>TaskFlow</h1>
-    <p>Tu espacio para organizar actividades, colaborar y seguir avances en español.</p>
-    <button type="button">Comenzar</button>
-  </main>
-`
+createRoot(document.getElementById('app')).render(
+  createElement(BrowserRouter, null, createElement(App)),
+)
