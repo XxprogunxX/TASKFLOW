@@ -1,33 +1,17 @@
 import {
   AlertTriangle,
-  Bell,
-  Book,
   Calendar,
   CheckCircle2,
-  CheckSquare,
-  ChevronDown,
-  Eye,
-  Inbox,
-  LayoutGrid,
   MessageSquare,
   Paperclip,
   Plus,
   Search,
-  Users,
   Zap,
 } from 'lucide-react'
 import { useState } from 'react'
+import Header from '../components/Header'
 import NewActivityModal from '../components/ModalActividad'
 import { useBoard } from '../hooks/useBoard'
-
-const navItems = [
-  { label: 'Tablero', Icon: LayoutGrid, active: true },
-  { label: 'Mis Tableros', Icon: Book },
-  { label: 'Mis Equipos', Icon: Users },
-  { label: 'Bandeja', Icon: Inbox },
-  { label: 'Mis Tareas', Icon: CheckSquare },
-  { label: 'Especi...', Icon: Eye },
-]
 
 const priorityStyles = {
   Alta: {
@@ -61,66 +45,7 @@ export default function BoardPage() {
 
   return (
     <div className="min-h-screen bg-[#FFF5F7]" style={{ backgroundColor: '#FFF5F7', color: '#2D2D3F' }}>
-      <header
-        className="sticky top-0 z-40 border-b border-slate-200/70 bg-white shadow-sm"
-        style={{ backgroundColor: '#FFFFFF' }}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <div
-              className="flex h-12 w-12 items-center justify-center rounded-3xl"
-              style={{ background: 'linear-gradient(135deg, #6d5bd0 0%, #3a2f8f 100%)' }}
-            >
-              <LayoutGrid className="h-5 w-5 text-white" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span
-                className="text-lg font-bold"
-                style={{ color: '#4A3A6B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-              >
-                TaskFlow
-              </span>
-              <ChevronDown className="h-4 w-4 text-[#4A3A6B]" />
-            </div>
-          </div>
-
-          <nav className="hidden flex-1 items-center justify-center gap-2 sm:flex">
-            {navItems.map((item) => (
-              <button
-                key={item.label}
-                className="flex items-center gap-2 rounded-2xl px-4 py-2 text-sm"
-                style={{
-                  backgroundColor: item.active ? '#F5F3FF' : 'transparent',
-                  color: item.active ? '#4A3A6B' : '#6B6B80',
-                  fontFamily: 'Nunito, sans-serif',
-                }}
-              >
-                <item.Icon className="h-4 w-4" style={{ color: item.active ? '#4A3A6B' : '#6B6B80' }} />
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm">
-              <Bell className="h-5 w-5 text-[#6B6B80]" />
-              <span
-                className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold"
-                style={{ backgroundColor: '#E53E3E', color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-              >
-                3
-              </span>
-            </div>
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-full"
-              style={{ backgroundColor: avatarColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-              title={nombreUsuario}
-            >
-              {initials}
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header active="Tablero" initials={initials} avatarColor={avatarColor} nombreUsuario={nombreUsuario} />
 
       <main className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-5 rounded-[32px] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
