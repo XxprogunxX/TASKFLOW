@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { getProyectoForUsuario } from '../services/proyectoService'
+import { getAvatarColor, getInitials } from '../utils/projectUtils'
 
 const columnConfig = {
   pendiente: { title: 'Por Hacer', accent: '#6366F1' },
@@ -14,35 +15,6 @@ const priorityConfig = {
   media: { label: 'Media', styleKey: 'Media' },
   baja: { label: 'Baja', styleKey: 'Baja' },
   urgente: { label: 'Urgente', styleKey: 'Alta' },
-}
-
-const getInitials = (name) => {
-  const normalizedName = (name || '').trim()
-
-  if (!normalizedName) {
-    return '?'
-  }
-
-  const parts = normalizedName.split(/\s+/).filter(Boolean)
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase()
-  }
-
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-}
-
-const getAvatarColor = (name) => {
-  const palette = ['#6D5BD0', '#D877FF', '#D69E2E', '#38A169', '#F97316', '#0EA5E9']
-  const normalizedName = (name || '').trim().toLowerCase()
-
-  let hash = 0
-  for (let index = 0; index < normalizedName.length; index += 1) {
-    hash = normalizedName.charCodeAt(index) + ((hash << 5) - hash)
-  }
-
-  const index = Math.abs(hash) % palette.length
-  return palette[index]
 }
 
 const formatDate = (value) => {
@@ -62,6 +34,28 @@ const formatDate = (value) => {
   }).format(date)
 }
 
+const mapResponsableToTaskOwner = (responsable) => {
+  if (!responsable?.id_usuario && !responsable?.id) {
+    return {
+      responsableId: null,
+      hasResponsable: false,
+      ownerName: 'Sin asignar',
+      ownerInitials: null,
+      ownerColor: null,
+    }
+  }
+
+  const nombre = responsable.nombre || responsable.correo || 'Usuario'
+
+  return {
+    responsableId: responsable.id_usuario ?? responsable.id,
+    hasResponsable: true,
+    ownerName: nombre,
+    ownerInitials: getInitials(nombre),
+    ownerColor: getAvatarColor(nombre),
+  }
+}
+
 export function useBoard() {
   const [usuario, setUsuario] = useState(null)
   const [columnas, setColumnas] = useState([])
@@ -71,6 +65,86 @@ export function useBoard() {
 
   const refreshBoard = useCallback(() => {
     setRefreshKey((current) => current + 1)
+  }, [])
+
+  /** CA03: actualiza la tarjeta en memoria sin refetch completo del tablero */
+  const updateTaskResponsable = useCallback((actividadId, responsable) => {
+    const ownerData = responsable
+      ? mapResponsableToTaskOwner({ id: responsable.id, nombre: responsable.nombre })
+      : mapResponsableToTaskOwner(null)
+
+    setColumnas((current) =>
+      current.map((column) => ({
+        ...column,
+        tasks: column.tasks.map((task) =>
+          task.id === actividadId
+            ? {
+                ...task,
+                ...ownerData,
+              }
+            : task,
+        ),
+      })),
+    )
+  }, [])
+
+  /** Actualiza campos editables de una actividad en memoria (estado, prioridad, fecha, título) */
+  const updateTaskFields = useCallback((actividadId, campos) => {
+    setColumnas((current) =>
+      current.map((column) => ({
+        ...column,
+        tasks: column.tasks.map((task) => {
+          if (task.id !== actividadId) return task
+
+          const updatedTask = { ...task }
+
+          // Actualizar título
+          if (campos.titulo !== undefined) {
+            updatedTask.title = campos.titulo
+          }
+
+          // Actualizar estado (mover a otra columna)
+          if (campos.estado !== undefined) {
+            updatedTask.estado = campos.estado
+          }
+
+          // Actualizar prioridad
+          if (campos.prioridad !== undefined) {
+            const prioridadRaw = campos.prioridad.toLowerCase()
+            const prioridadConfigData = priorityConfig[prioridadRaw] || priorityConfig.media
+            updatedTask.priority = prioridadConfigData.styleKey
+            updatedTask.priorityLabel = prioridadConfigData.label
+            updatedTask.priorityRaw = prioridadRaw
+          }
+
+          // Actualizar fecha límite
+          if (campos.fecha_limite !== undefined) {
+            updatedTask.date = formatDate(campos.fecha_limite)
+          }
+
+          // Actualizar responsable
+          if (campos.responsable !== undefined) {
+            const ownerData = campos.responsable
+              ? mapResponsableToTaskOwner({ id: campos.responsable.id, nombre: campos.responsable.nombre })
+              : mapResponsableToTaskOwner(null)
+            Object.assign(updatedTask, ownerData)
+          }
+
+          return updatedTask
+        }),
+      })),
+    )
+  }, [])
+
+  /** Elimina una actividad del tablero en memoria */
+  const deleteTaskFromBoard = useCallback((actividadId) => {
+    setColumnas((current) =>
+      current.map((column) => ({
+        ...column,
+        count: column.tasks.filter((task) => task.id !== actividadId).length,
+        tasks: column.tasks.filter((task) => task.id !== actividadId),
+      })),
+    )
   }, [])
 
   useEffect(() => {
@@ -104,6 +178,7 @@ export function useBoard() {
           iniciales: getInitials(usuarioData?.nombre || authData.user.email || 'Usuario'),
           color: getAvatarColor(usuarioData?.nombre || authData.user.email || 'Usuario'),
           sinProyectos: false,
+          proyectoId: null,
         }
 
         let proyectoId = null
@@ -114,6 +189,8 @@ export function useBoard() {
           proyectoId = proyectoData.proyectoId
           proyectoNombre = proyectoData.proyectoNombre || proyectoNombre
         }
+
+        perfil.proyectoId = proyectoId
 
         if (!proyectoId) {
           perfil.sinProyectos = true
@@ -128,7 +205,8 @@ export function useBoard() {
             estado,
             fecha_limite,
             id_proyecto,
-            responsable:usuarios!id_responsable(id_usuario, nombre),
+            id_responsable,
+            responsable:usuarios!id_responsable(id_usuario, nombre, correo),
             comentarios(count),
             evidencias(count)
           `)
@@ -150,6 +228,7 @@ export function useBoard() {
           const prioridadConfigData = priorityConfig[prioridadRaw] || priorityConfig.media
           const estadoRaw = (actividad.estado || '').toLowerCase()
           const estadoKey = Object.keys(columnConfig).find((key) => key === estadoRaw) || 'pendiente'
+          const ownerData = mapResponsableToTaskOwner(responsable)
 
           return {
             id: actividad.id_actividad,
@@ -160,11 +239,9 @@ export function useBoard() {
             date: formatDate(actividad.fecha_limite),
             comments: actividad.comentarios?.[0]?.count ?? 0,
             attachments: actividad.evidencias?.[0]?.count ?? 0,
-            ownerName: responsable?.nombre || 'Sin responsable',
-            ownerInitials: getInitials(responsable?.nombre || 'Sin responsable'),
-            ownerColor: getAvatarColor(responsable?.nombre || 'Sin responsable'),
             tags: [],
             estado: estadoKey,
+            ...ownerData,
           }
         })
 
@@ -215,5 +292,8 @@ export function useBoard() {
     isLoading,
     error,
     refreshBoard,
+    updateTaskResponsable,
+    updateTaskFields,
+    deleteTaskFromBoard,
   }
 }

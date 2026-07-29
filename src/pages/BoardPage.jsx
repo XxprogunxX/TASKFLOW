@@ -6,10 +6,12 @@ import {
   Paperclip,
   Plus,
   Search,
+  UserPlus,
   Zap,
 } from 'lucide-react'
 import { useState } from 'react'
 import Header from '../components/Header'
+import ActivityDetailModal from '../components/ModalDetalleActividad'
 import NewActivityModal from '../components/ModalActividad'
 import { useBoard } from '../hooks/useBoard'
 
@@ -35,8 +37,10 @@ const priorityStyles = {
 }
 
 export default function BoardPage() {
-  const { usuario, columnas, isLoading, error, refreshBoard } = useBoard()
+  const { usuario, columnas, isLoading, error, refreshBoard, updateTaskResponsable, updateTaskFields, deleteTaskFromBoard } = useBoard()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedTaskId, setSelectedTaskId] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
 
   const initials = usuario?.iniciales || '?'
   const avatarColor = usuario?.color || '#6D5BD0'
@@ -174,9 +178,14 @@ export default function BoardPage() {
                     const priority = priorityStyles[task.priority] || priorityStyles.Media
 
                     return (
-                      <div
+                      <button
                         key={task.id}
-                        className="rounded-2xl border border-[#E5E7F0] bg-white p-4 shadow-sm transition hover:shadow-md"
+                        type="button"
+                        onClick={() => {
+                          setSelectedTaskId(task.id)
+                          setIsDetailOpen(true)
+                        }}
+                        className="w-full rounded-2xl border border-[#E5E7F0] bg-white p-4 text-left shadow-sm transition hover:shadow-md"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
@@ -243,15 +252,25 @@ export default function BoardPage() {
                               {task.attachments}
                             </span>
                           </div>
-                          <div
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold"
-                            style={{ backgroundColor: task.ownerColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-                            title={task.ownerName}
-                          >
-                            {task.ownerInitials}
-                          </div>
+                          {task.hasResponsable ? (
+                            <div
+                              className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold"
+                              style={{ backgroundColor: task.ownerColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
+                              title={task.ownerName}
+                            >
+                              {task.ownerInitials}
+                            </div>
+                          ) : (
+                            <div
+                              className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-slate-300 bg-slate-100"
+                              title="Sin asignar"
+                              aria-label="Sin responsable asignado"
+                            >
+                              <UserPlus className="h-4 w-4 text-slate-400" />
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      </button>
                     )
                   })}
                 </div>
@@ -265,6 +284,19 @@ export default function BoardPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onActivityCreated={refreshBoard}
+      />
+
+      <ActivityDetailModal
+        isOpen={isDetailOpen}
+        onClose={() => {
+          setIsDetailOpen(false)
+          setSelectedTaskId(null)
+        }}
+        actividadId={selectedTaskId}
+        proyectoId={usuario?.proyectoId}
+        onResponsableUpdated={updateTaskResponsable}
+        onActivityUpdated={updateTaskFields}
+        onActivityDeleted={deleteTaskFromBoard}
       />
     </div>
   )

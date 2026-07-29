@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { fetchMiembrosProyecto } from '../services/actividadesService'
 import { getProyectoForUsuario } from '../services/proyectoService'
 
 const priorityMap = {
@@ -13,28 +14,6 @@ const estadoMap = {
   'En Progreso': 'en_progreso',
   'En Revisión': 'en_revision',
   'Completado': 'completada',
-}
-
-const getInitials = (name) => {
-  const normalizedName = (name || '').trim()
-  if (!normalizedName) return '?'
-
-  const parts = normalizedName.split(/\s+/).filter(Boolean)
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-}
-
-const getAvatarColor = (name) => {
-  const palette = ['#6D5BD0', '#D877FF', '#D69E2E', '#38A169', '#F97316', '#0EA5E9']
-  const normalizedName = (name || '').trim().toLowerCase()
-  let hash = 0
-
-  for (let index = 0; index < normalizedName.length; index += 1) {
-    hash = normalizedName.charCodeAt(index) + ((hash << 5) - hash)
-  }
-
-  return palette[Math.abs(hash) % palette.length]
 }
 
 export function useNewActivity({ isOpen, onActivityCreated }) {
@@ -102,44 +81,16 @@ export function useNewActivity({ isOpen, onActivityCreated }) {
           return
         }
 
-        const { data: memberships, error: membershipsError } = await supabase
-          .from('usuarios_equipos')
-          .select('id_equipo')
-          .eq('id_usuario', perfil.id_usuario)
+        const { proyectoId } = await getProyectoForUsuario(perfil.id_usuario)
 
-        if (membershipsError) {
-          throw membershipsError
-        }
-
-        const equipoIds = [...new Set((memberships || []).map((item) => item.id_equipo).filter(Boolean))]
-
-        if (equipoIds.length === 0) {
+        if (!proyectoId) {
           if (isMounted) {
             setResponsables([])
           }
           return
         }
 
-        const { data: usuariosEquipo, error: usuariosEquipoError } = await supabase
-          .from('usuarios')
-          .select('id_usuario, nombre, correo')
-          .in('id_usuario', (
-            await supabase
-              .from('usuarios_equipos')
-              .select('id_usuario')
-              .in('id_equipo', equipoIds)
-          ).data?.map((item) => item.id_usuario) || [])
-
-        if (usuariosEquipoError) {
-          throw usuariosEquipoError
-        }
-
-        const mapped = (usuariosEquipo || []).map((usuario) => ({
-          id: usuario.id_usuario,
-          nombre: usuario.nombre || usuario.correo || 'Sin nombre',
-          iniciales: getInitials(usuario.nombre || usuario.correo || 'Sin nombre'),
-          color: getAvatarColor(usuario.nombre || usuario.correo || 'Sin nombre'),
-        }))
+        const mapped = await fetchMiembrosProyecto(proyectoId)
 
         if (isMounted) {
           setResponsables(mapped)

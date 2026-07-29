@@ -213,5 +213,11 @@ CREATE POLICY actividades_insert_miembros ON public.actividades
   FOR INSERT TO authenticated
   WITH CHECK (public.is_member_of_proyecto(id_proyecto));
 
+DROP POLICY IF EXISTS actividades_update_miembros ON public.actividades;
+CREATE POLICY actividades_update_miembros ON public.actividades
+  FOR UPDATE TO authenticated
+  USING (public.is_member_of_proyecto(id_proyecto))
+  WITH CHECK (public.is_member_of_proyecto(id_proyecto));
+
 -- Verificación opcional:
 -- SELECT proname FROM pg_proc WHERE proname IN ('crear_proyecto_con_equipo', 'get_current_usuario_id');
