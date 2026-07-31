@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 const navItems = [
   { label: 'Tablero', Icon: LayoutGrid, path: '/tablero' },
   { label: 'Mis Tableros', Icon: Book, path: '/mis-tableros' },
-  { label: 'Mis Equipos', Icon: Users, path: null },
+  { label: 'Mis Equipos', Icon: Users, path: '/mis-equipos' },
   { label: 'Bandeja', Icon: Inbox, path: null },
   { label: 'Mis Tareas', Icon: CheckSquare, path: null },
   { label: 'Especi...', Icon: Eye, path: null },

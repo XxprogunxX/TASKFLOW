@@ -1,4 +1,4 @@
-import { Calendar, Clock, MessageSquare, Paperclip, Trash2, User, X, ExternalLink } from 'lucide-react'
+import { Calendar, Clock, MessageSquare, Paperclip, Trash2, User, X, ExternalLink, Send } from 'lucide-react'
 import { useActivityDetail } from '../../hooks/useActivityDetail'
 import { useState, useCallback } from 'react'
 
@@ -227,26 +227,35 @@ export default function ActivityDetailModal({
                   Comentarios
                 </h3>
                 
-                <div className="space-y-3 max-h-48 overflow-y-auto">
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
                   {comentarios.length === 0 ? (
                     <p className="text-sm text-slate-500" style={{ fontFamily: 'Nunito, sans-serif' }}>
-                      No hay comentarios aún.
+                      Aún no hay comentarios en esta actividad.
                     </p>
                   ) : null}
                   
                   {comentarios.map((comentario) => {
                     const usuario = Array.isArray(comentario.usuarios) ? comentario.usuarios[0] : comentario.usuarios
                     const nombreUsuario = usuario?.nombre || usuario?.correo || 'Usuario'
+                    const inicialesUsuario = nombreUsuario.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
                     
                     return (
-                      <div key={comentario.id_comentario} className="rounded-2xl bg-slate-50 p-3">
-                        <div className="mb-1 flex items-center justify-between gap-2">
-                          <span className="text-xs font-semibold text-slate-700" style={{ fontFamily: 'Nunito, sans-serif' }}>
-                            {nombreUsuario}
-                          </span>
-                          <span className="text-xs text-slate-500" style={{ fontFamily: 'Nunito, sans-serif' }}>
-                            {formatDate(comentario.fecha_comentario)}
-                          </span>
+                      <div key={comentario.id_comentario} className="rounded-2xl bg-slate-50 p-4">
+                        <div className="mb-2 flex items-center gap-3">
+                          <div
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold"
+                            style={{ backgroundColor: '#6D5BD0', color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
+                          >
+                            {inicialesUsuario}
+                          </div>
+                          <div className="flex-1">
+                            <span className="text-xs font-semibold text-slate-700" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                              {nombreUsuario}
+                            </span>
+                            <span className="ml-2 text-xs text-slate-500" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                              {formatDate(comentario.fecha_comentario)}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-sm text-slate-600" style={{ fontFamily: 'Nunito, sans-serif' }}>
                           {comentario.comentario}
@@ -257,15 +266,15 @@ export default function ActivityDetailModal({
                 </div>
 
                 <div className="flex gap-2">
-                  <input
-                    type="text"
+                  <textarea
                     value={nuevoComentario}
                     onChange={(e) => setNuevoComentario(e.target.value)}
                     placeholder="Escribe un comentario..."
-                    className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:border-[#6D5BD0]"
+                    rows={2}
+                    className="flex-1 resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#6D5BD0]"
                     style={{ fontFamily: 'Nunito, sans-serif' }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault()
                         handleAddComentario()
                       }
@@ -275,10 +284,11 @@ export default function ActivityDetailModal({
                     type="button"
                     onClick={handleAddComentario}
                     disabled={isSaving || !nuevoComentario.trim()}
-                    className="rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+                    className="mt-auto h-10 rounded-xl px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
                     style={{ background: 'linear-gradient(135deg, #6d5bd0 0%, #3a2f8f 100%)', fontFamily: 'Nunito, sans-serif' }}
+                    title="Enviar comentario"
                   >
-                    <MessageSquare className="h-4 w-4" />
+                    <Send className="h-4 w-4" />
                   </button>
                 </div>
               </div>
