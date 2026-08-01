@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Bell, Book, ChevronDown, CheckSquare, Inbox, LayoutGrid, Users, TrendingUp, LogOut } from 'lucide-react'
+import { Bell, Book, ChevronDown, CheckSquare, Inbox, LayoutGrid, Users, TrendingUp, LogOut, User } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
 import { getAvatarColor, getInitials } from '../../utils/projectUtils'
@@ -225,6 +225,16 @@ export default function Header({
 
               <div className="my-2 border-t border-slate-100" />
 
+              <Link
+                to="/perfil"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-[#4A3A6B] hover:bg-slate-50 transition-colors"
+                style={{ fontFamily: 'Nunito, sans-serif' }}
+              >
+                <User className="h-4 w-4 text-[#6D5BD0]" />
+                Mi Perfil
+              </Link>
+
               <button
                 onClick={handleLogout}
                 className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-[#E53E3E] hover:bg-red-50/50 transition-colors"
@@ -290,13 +300,14 @@ export default function Header({
             ) : null}
           </Link>
 
-          <div
+          <Link
+            to="/perfil"
             className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold shadow-sm transition-transform hover:scale-105"
             style={{ backgroundColor: displayColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-            title={displayNombre}
+            title={`Editar perfil de ${displayNombre}`}
           >
             {displayInitials}
-          </div>
+          </Link>
         </div>
       </div>
     </header>
