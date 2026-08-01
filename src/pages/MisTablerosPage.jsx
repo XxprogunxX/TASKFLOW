@@ -105,14 +105,7 @@ export default function MisTablerosPage() {
         ) : null}
       </main>
 
-      <button
-        type="button"
-        className="fixed bottom-6 right-6 flex h-11 w-11 items-center justify-center rounded-full shadow-lg"
-        style={{ backgroundColor: '#2D2D3F', color: '#FFFFFF' }}
-        aria-label="Ayuda"
-      >
-        <HelpCircle className="h-5 w-5" />
-      </button>
+
 
       <ModalNuevoProyecto
         isOpen={isModalOpen}

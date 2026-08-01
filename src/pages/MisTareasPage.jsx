@@ -375,15 +375,7 @@ export default function MisTareasPage() {
         )}
       </main>
 
-      {/* Floating help button */}
-      <button
-        type="button"
-        className="fixed bottom-6 right-6 flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg transition hover:scale-105"
-        style={{ background: 'linear-gradient(135deg, #1E1B4B, #3B3298)' }}
-        title="Ayuda"
-      >
-        <HelpCircle className="h-5 w-5" />
-      </button>
+
 
       {/* Task Detail Modal */}
       {isDetailModalOpen && (
