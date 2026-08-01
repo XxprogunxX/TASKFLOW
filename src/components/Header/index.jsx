@@ -1,16 +1,154 @@
-import { Bell, Book, ChevronDown, CheckSquare, Eye, Inbox, LayoutGrid, Users, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Bell, Book, ChevronDown, CheckSquare, Inbox, LayoutGrid, Users, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { supabase } from '../../supabaseClient'
+import { getAvatarColor, getInitials } from '../../utils/projectUtils'
 
 const navItems = [
   { label: 'Tablero', Icon: LayoutGrid, path: '/tablero' },
   { label: 'Panel de Avance', Icon: TrendingUp, path: '/panel-avance' },
   { label: 'Mis Tableros', Icon: Book, path: '/mis-tableros' },
   { label: 'Mis Equipos', Icon: Users, path: '/mis-equipos' },
-  { label: 'Bandeja', Icon: Inbox, path: null },
+  { label: 'Bandeja', Icon: Inbox, path: '/bandeja' },
   { label: 'Mis Tareas', Icon: CheckSquare, path: '/mis-tareas' },
 ]
 
-export default function Header({ active = 'Tablero', initials = '?', avatarColor = '#6D5BD0', nombreUsuario = 'Usuario', notificationCount = 3 }) {
+export default function Header({
+  active = 'Tablero',
+  initials: propInitials,
+  avatarColor: propAvatarColor,
+  nombreUsuario: propNombreUsuario,
+  notificationCount: propNotificationCount,
+}) {
+  const [userData, setUserData] = useState(() => {
+    let cached = null
+    try {
+      const stored = localStorage.getItem('taskflow_user_avatar')
+      if (stored) cached = JSON.parse(stored)
+    } catch {
+      // Ignore storage errors
+    }
+
+    return {
+      initials: (propInitials && propInitials !== '?') ? propInitials : (cached?.initials || null),
+      avatarColor: (propAvatarColor && propAvatarColor !== '#6D5BD0') ? propAvatarColor : (cached?.color || null),
+      nombreUsuario: (propNombreUsuario && propNombreUsuario !== 'Usuario') ? propNombreUsuario : (cached?.name || null),
+      notificationCount: (propNotificationCount !== undefined && propNotificationCount !== 3) ? propNotificationCount : (cached?.notificationCount ?? null),
+    }
+  })
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadHeaderData() {
+      try {
+        const { data: authData } = await supabase.auth.getUser()
+        if (!authData?.user) return
+
+        // 1. Fetch user profile
+        const { data: usr } = await supabase
+          .from('usuarios')
+          .select('nombre, correo, avatar_url, id_usuario')
+          .eq('auth_id', authData.user.id)
+          .maybeSingle()
+
+        const name = usr?.nombre || authData.user.email || 'Usuario'
+        const calcInitials = getInitials(name)
+        const calcColor = getAvatarColor(name)
+
+        // 2. Fetch pending invitations count
+        const email = authData.user.email
+        let totalUnread = 0
+
+        if (email) {
+          const { count: invCount } = await supabase
+            .from('invitaciones')
+            .select('*', { count: 'exact', head: true })
+            .eq('correo_invitado', email)
+            .eq('estado', 'pendiente')
+
+          totalUnread += invCount || 0
+        }
+
+        // 3. Fetch unread notifications count
+        if (usr?.id_usuario) {
+          const { count: notifCount } = await supabase
+            .from('notificaciones')
+            .select('*', { count: 'exact', head: true })
+            .eq('id_usuario', usr.id_usuario)
+            .eq('estado', 'no_leido')
+
+          totalUnread += notifCount || 0
+        }
+
+        const resolvedInitials = (propInitials && propInitials !== '?') ? propInitials : calcInitials
+        const resolvedColor = (propAvatarColor && propAvatarColor !== '#6D5BD0') ? propAvatarColor : calcColor
+        const resolvedName = (propNombreUsuario && propNombreUsuario !== 'Usuario') ? propNombreUsuario : name
+        const resolvedCount = (propNotificationCount !== undefined && propNotificationCount !== 3) ? propNotificationCount : totalUnread
+
+        // Save to cache for instant render on future page switches
+        try {
+          localStorage.setItem('taskflow_user_avatar', JSON.stringify({
+            initials: resolvedInitials,
+            color: resolvedColor,
+            name: resolvedName,
+            notificationCount: resolvedCount,
+          }))
+        } catch {
+          // Ignore storage errors
+        }
+
+        if (isMounted) {
+          setUserData({
+            initials: resolvedInitials,
+            avatarColor: resolvedColor,
+            nombreUsuario: resolvedName,
+            notificationCount: resolvedCount,
+          })
+        }
+      } catch (err) {
+        console.error('Error cargando datos del header:', err)
+      }
+    }
+
+    loadHeaderData()
+
+    // 1. Polling cada 4 segundos para actualizar la campana automáticamente sin recargar
+    const pollInterval = setInterval(() => {
+      loadHeaderData()
+    }, 4000)
+
+    // 2. Realtime channel listener para actualizaciones instantáneas vía WebSockets
+    const channel = supabase
+      .channel('header_realtime_notifications')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notificaciones' },
+        () => {
+          loadHeaderData()
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'invitaciones' },
+        () => {
+          loadHeaderData()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      isMounted = false
+      clearInterval(pollInterval)
+      supabase.removeChannel(channel)
+    }
+  }, [propInitials, propAvatarColor, propNombreUsuario, propNotificationCount])
+
+  const displayInitials = userData.initials || (propInitials && propInitials !== '?' ? propInitials : null) || '?'
+  const displayColor = userData.avatarColor || (propAvatarColor && propAvatarColor !== '#6D5BD0' ? propAvatarColor : null) || '#6D5BD0'
+  const displayNombre = userData.nombreUsuario || (propNombreUsuario && propNombreUsuario !== 'Usuario' ? propNombreUsuario : null) || 'Usuario'
+  const displayCount = userData.notificationCount !== null ? userData.notificationCount : (propNotificationCount !== undefined && propNotificationCount !== 3 ? propNotificationCount : 0)
+
   return (
     <header
       className="sticky top-0 z-40 border-b border-slate-200/70 bg-white shadow-sm"
@@ -44,7 +182,7 @@ export default function Header({ active = 'Tablero', initials = '?', avatarColor
                 {item.label}
               </>
             )
-            const className = 'flex items-center gap-2 rounded-2xl px-4 py-2 text-sm'
+            const className = 'flex items-center gap-2 rounded-2xl px-4 py-2 text-sm transition-colors'
             const style = {
               backgroundColor: isActive ? '#F5F3FF' : 'transparent',
               color: isActive ? '#4A3A6B' : '#6B6B80',
@@ -68,23 +206,28 @@ export default function Header({ active = 'Tablero', initials = '?', avatarColor
         </nav>
 
         <div className="flex items-center gap-4">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm">
+          <Link
+            to="/bandeja"
+            className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm hover:bg-slate-50 transition-colors"
+            title="Ir a Bandeja de notificaciones"
+          >
             <Bell className="h-5 w-5 text-[#6B6B80]" />
-            {notificationCount > 0 ? (
+            {displayCount > 0 ? (
               <span
                 className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold"
                 style={{ backgroundColor: '#E53E3E', color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
               >
-                {notificationCount}
+                {displayCount}
               </span>
             ) : null}
-          </div>
+          </Link>
+
           <div
-            className="flex h-10 w-10 items-center justify-center rounded-full"
-            style={{ backgroundColor: avatarColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-            title={nombreUsuario}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold shadow-sm transition-transform hover:scale-105"
+            style={{ backgroundColor: displayColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
+            title={displayNombre}
           >
-            {initials}
+            {displayInitials}
           </div>
         </div>
       </div>

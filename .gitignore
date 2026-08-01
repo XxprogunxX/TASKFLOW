@@ -25,3 +25,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+node_modules
+
+
+fix_actividades.sql
+fix_tablas_y_funciones.sql
+fix-equipo-desconocido.sql
+invitaciones.sql
+notificaciones.sql
+parche_final_equipos.sql
+setup_completo_taskflow.sql
+check_db.js

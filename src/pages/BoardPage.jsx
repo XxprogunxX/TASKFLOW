@@ -283,6 +283,7 @@ export default function BoardPage() {
       <NewActivityModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        proyectoId={usuario?.proyectoId}
         onActivityCreated={refreshBoard}
       />
 

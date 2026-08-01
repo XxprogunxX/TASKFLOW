@@ -65,9 +65,9 @@ export function useMisTareas() {
 
       if (!currentUserId) {
         setUsuario({
-          nombre: 'Manuel Gonzalez',
-          correo: 'manuel@example.com',
-          iniciales: 'MG',
+          nombre: 'Usuario',
+          correo: '',
+          iniciales: 'U',
           color: '#6D5BD0',
         })
       }
@@ -84,7 +84,9 @@ export function useMisTareas() {
           fecha_limite,
           id_responsable,
           id_proyecto,
-          responsable:usuarios!id_responsable(id_usuario, nombre, correo)
+          responsable:usuarios!id_responsable(id_usuario, nombre, correo),
+          comentarios(count),
+          evidencias(count)
         `)
         .order('fecha_limite', { ascending: true })
 
@@ -94,17 +96,44 @@ export function useMisTareas() {
 
       let { data: dbActividades, error: fetchErr } = await query
 
-      if (fetchErr || !dbActividades || dbActividades.length === 0) {
+      if (fetchErr) {
+        console.error('Error cargando actividades:', fetchErr)
+        throw fetchErr
+      }
+
+      if (!dbActividades || dbActividades.length === 0) {
         setTasks([])
       } else {
+        const now = new Date()
+        now.setHours(0, 0, 0, 0)
+
         const mapped = dbActividades.map((act) => {
-          const isMine = currentUserId ? act.id_responsable === currentUserId : true
+          const isMine = currentUserId ? (act.id_responsable != null && String(act.id_responsable) === String(currentUserId)) : true
           const prio = (act.prioridad || 'media').toLowerCase()
+
+          // Calculate due date status badge
+          let dueBadge = null
+          if (act.fecha_limite) {
+            const due = new Date(act.fecha_limite)
+            const dueDays = Math.round((due.setHours(0,0,0,0) - now) / (1000 * 60 * 60 * 24))
+
+            if (dueDays < 0 && act.estado !== 'completada') {
+              dueBadge = { text: 'Vencida', variant: 'danger' }
+            } else if (dueDays === 0) {
+              dueBadge = { text: 'Vence hoy', variant: 'warning' }
+            } else if (dueDays === 1) {
+              dueBadge = { text: 'Vence mañana', variant: 'warning' }
+            } else {
+              dueBadge = { text: formatDate(act.fecha_limite), variant: 'neutral' }
+            }
+          }
+
           return {
             id: act.id_actividad,
             title: act.titulo || 'Sin título',
             date: formatDate(act.fecha_limite),
             rawDate: act.fecha_limite,
+            dueBadge,
             status: act.estado || 'pendiente',
             statusLabel: mapStatusLabel(act.estado),
             tags: prio === 'alta' ? ['Backend', 'Seguridad'] : prio === 'media' ? ['DevOps'] : ['Diseño'],
@@ -112,6 +141,14 @@ export function useMisTareas() {
             priorityLabel: prio === 'alta' || prio === 'urgente' ? 'Alta' : prio === 'baja' ? 'Baja' : 'Media',
             isMine,
             idResponsable: act.id_responsable,
+            comentariosCount: act.comentarios?.[0]?.count || 0,
+            evidenciasCount: act.evidencias?.[0]?.count || 0,
+            responsableNombre: (() => {
+              const r = act.responsable
+              if (!r) return null
+              const data = Array.isArray(r) ? r[0] : r
+              return data?.nombre || data?.correo || null
+            })(),
           }
         })
         setTasks(mapped)

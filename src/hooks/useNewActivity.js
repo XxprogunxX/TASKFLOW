@@ -12,11 +12,11 @@ const priorityMap = {
 const estadoMap = {
   'Por Hacer': 'pendiente',
   'En Progreso': 'en_progreso',
-  'En Revisión': 'en_revision',
+  'En Revisión': 'en_revisión',
   'Completado': 'completada',
 }
 
-export function useNewActivity({ isOpen, onActivityCreated }) {
+export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProyectoId }) {
   const [responsables, setResponsables] = useState([])
   const [selectedResponsable, setSelectedResponsable] = useState(null)
   const [title, setTitle] = useState('')
@@ -81,16 +81,20 @@ export function useNewActivity({ isOpen, onActivityCreated }) {
           return
         }
 
-        const { proyectoId } = await getProyectoForUsuario(perfil.id_usuario)
+        let pid = propProyectoId
+        if (!pid) {
+          const res = await getProyectoForUsuario(perfil.id_usuario)
+          pid = res.proyectoId
+        }
 
-        if (!proyectoId) {
+        if (!pid) {
           if (isMounted) {
             setResponsables([])
           }
           return
         }
 
-        const mapped = await fetchMiembrosProyecto(proyectoId)
+        const mapped = await fetchMiembrosProyecto(pid)
 
         if (isMounted) {
           setResponsables(mapped)
@@ -170,9 +174,13 @@ export function useNewActivity({ isOpen, onActivityCreated }) {
         throw perfilError
       }
 
-      const { proyectoId } = await getProyectoForUsuario(perfil?.id_usuario)
+      let insertPid = propProyectoId
+      if (!insertPid) {
+        const res = await getProyectoForUsuario(perfil?.id_usuario)
+        insertPid = res.proyectoId
+      }
 
-      if (!proyectoId) {
+      if (!insertPid) {
         throw new Error('No se encontró un proyecto activo para esta cuenta.')
       }
 
@@ -183,7 +191,7 @@ export function useNewActivity({ isOpen, onActivityCreated }) {
       const { data: actividadData, error: actividadError } = await supabase
         .from('actividades')
         .insert({
-          id_proyecto: proyectoId,
+          id_proyecto: insertPid,
           id_responsable: selectedResponsable?.id ?? null,
           titulo: title.trim(),
           descripcion: descripcionConEtiquetas || null,
@@ -197,6 +205,7 @@ export function useNewActivity({ isOpen, onActivityCreated }) {
       if (actividadError) {
         throw actividadError
       }
+
 
       const actividadId = actividadData?.id_actividad
 

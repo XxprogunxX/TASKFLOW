@@ -24,12 +24,15 @@ export function useMisEquipos() {
       const equiposConIntegrantes = await Promise.all(
         equiposUsuario.map(async (equipoUsuario) => {
           const integrantes = await fetchIntegrantesEquipo(equipoUsuario.id_equipo)
+          const rawProyectos = equipoUsuario.equipos?.proyectos
+          const primerProyecto = Array.isArray(rawProyectos) ? (rawProyectos[0] || null) : (rawProyectos || null)
+
           return {
             id_equipo: equipoUsuario.id_equipo,
             rol: equipoUsuario.rol,
             especialidad: equipoUsuario.especialidad,
             equipos: equipoUsuario.equipos,
-            proyectos: equipoUsuario.equipos?.proyectos || null,
+            proyectos: primerProyecto,
             integrantes
           }
         })

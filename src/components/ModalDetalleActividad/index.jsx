@@ -1,6 +1,6 @@
-import { Calendar, Clock, MessageSquare, Paperclip, Trash2, User, X, ExternalLink, Send, Link, Check, Circle } from 'lucide-react'
+import { Calendar, Check, ExternalLink, Link2, MessageSquare, Paperclip, Save, Send, Trash2, User, X } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { useActivityDetail } from '../../hooks/useActivityDetail'
-import { useState, useCallback } from 'react'
 
 const avatarColors = ['#6D5BD0', '#DB2777', '#059669', '#D97706', '#7C3AED', '#0891B2', '#C2410C', '#4B5563']
 
@@ -8,16 +8,26 @@ function getAvatarColor(index) {
   return avatarColors[index % avatarColors.length]
 }
 
-function getInitials(nombre) {
+function getInitials(nombre = '') {
   return nombre
     .split(' ')
-    .map(n => n[0])
+    .map((n) => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2)
 }
 
-export default function ActivityDetailModal({
+function formatDate(dateString) {
+  if (!dateString) return 'Sin fecha'
+  return new Intl.DateTimeFormat('es-ES', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(dateString))
+}
+
+export default function ModalDetalleActividad({
   isOpen,
   onClose,
   actividadId,
@@ -25,10 +35,10 @@ export default function ActivityDetailModal({
   onResponsableUpdated,
   onActivityUpdated,
   onActivityDeleted,
+  onUpdated,
 }) {
-  // Hooks deben declararse antes de cualquier return condicional
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  
+
   const {
     actividad,
     miembros,
@@ -61,7 +71,14 @@ export default function ActivityDetailModal({
     handleAddComentario,
     handleAddEvidencia,
     handleDeleteActividad,
-  } = useActivityDetail({ actividadId, proyectoId, isOpen, onResponsableUpdated, onActivityUpdated, onActivityDeleted })
+  } = useActivityDetail({
+    actividadId,
+    proyectoId,
+    isOpen,
+    onResponsableUpdated,
+    onActivityUpdated: onActivityUpdated || onUpdated,
+    onActivityDeleted,
+  })
 
   const handleConfirmDelete = useCallback(async () => {
     await handleDeleteActividad()
@@ -69,246 +86,174 @@ export default function ActivityDetailModal({
     onClose()
   }, [handleDeleteActividad, onClose])
 
-  const formatDate = useCallback((dateString) => {
-    if (!dateString) return 'No registrada'
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date)
-  }, [])
-
-  const handleEvidenciaKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && nuevaEvidenciaUrl.trim()) {
-      handleAddEvidencia()
-    }
-  }, [nuevaEvidenciaUrl, handleAddEvidencia])
-
-  if (!isOpen || !actividadId) {
-    return null
-  }
+  if (!isOpen || !actividadId) return null
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 py-6">
-        <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-          {/* Header del modal */}
-          <div className="flex items-start justify-between p-6 border-b border-slate-200">
-            <div className="flex-1">
-              <h1
-                className="text-2xl font-bold"
-                style={{ color: '#4A3A6B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-              >
-                {titulo || 'Título de la actividad'}
-              </h1>
-              <div className="mt-2 flex items-center gap-3">
-                <span
-                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-                  style={{ backgroundColor: '#E9D5FF', color: '#7C3AED', fontFamily: 'Nunito, sans-serif' }}
-                >
-                  Diseño
-                </span>
-                <span className="text-xs" style={{ color: '#D97706', fontFamily: 'Nunito, sans-serif' }}>
-                  • Cambios sin guardar
-                </span>
-              </div>
-            </div>
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs"
+        onClick={(e) => e.target === e.currentTarget && onClose()}
+      >
+        <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-100 px-8 py-5">
+            <input
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              placeholder="Título de la actividad"
+              className="w-full text-xl font-extrabold text-[#2D2342] outline-none placeholder:text-slate-300"
+              style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            />
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100"
-              aria-label="Cerrar modal"
+              className="ml-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
+          {/* Body */}
           {isLoading ? (
-            <div className="p-6 text-sm text-slate-500">Cargando actividad...</div>
-          ) : null}
+            <div className="p-8 text-center text-sm text-slate-400">Cargando actividad...</div>
+          ) : !actividad ? (
+            <div className="p-8 text-center text-sm text-slate-500">{error || 'No se encontró la actividad.'}</div>
+          ) : (
+            <div className="flex flex-1 overflow-hidden">
+              {/* Columna Izquierda */}
+              <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                {error && <div className="rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-600">{error}</div>}
+                {success && <div className="rounded-2xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700">? {success}</div>}
 
-          {!isLoading && actividad ? (
-            <div className="flex flex-col lg:flex-row">
-              {/* Columna izquierda - Formulario */}
-              <div className="flex-1 p-6 lg:border-r lg:border-slate-200">
-                {error ? (
-                  <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-[#E53E3E]">
-                    {error}
-                  </div>
-                ) : null}
-
-                {success ? (
-                  <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                    {success}
-                  </div>
-                ) : null}
-
-                {/* Estado y Prioridad en fila */}
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Estado */}
+                {/* Estado y Prioridad */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-3 block text-xs font-bold uppercase" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-                      Estado
-                    </label>
-                    <div className="space-y-2">
-                      {['Pendiente', 'En proceso', 'En revisión', 'Completada'].map((opcion) => (
-                        <button
-                          key={opcion}
-                          type="button"
-                          onClick={() => setEstado(opcion)}
-                          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-                            estado === opcion ? 'border-2 border-[#6D5BD0] bg-[#E9D5FF]' : 'border border-transparent hover:bg-slate-50'
-                          }`}
-                          style={{ fontFamily: 'Nunito, sans-serif' }}
-                        >
-                          <Circle
-                            className="h-3 w-3"
-                            fill={estado === opcion ? 'currentColor' : 'none'}
-                            style={{
-                              color: opcion === 'Pendiente' ? '#6D5BD0' :
-                                     opcion === 'En proceso' ? '#D97706' :
-                                     opcion === 'En revisión' ? '#DB2777' : '#059669'
-                            }}
-                          />
-                          <span style={{ color: estado === opcion ? '#4A3A6B' : '#6B6B80' }}>
-                            {opcion}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                    <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Estado</label>
+                    <select
+                      value={estado}
+                      onChange={(e) => setEstado(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-purple-400"
+                    >
+                      <option value="Pendiente">Pendiente</option>
+                      <option value="En proceso">En proceso</option>
+                      <option value="En revisión">En revisión</option>
+                      <option value="Completada">Completada</option>
+                    </select>
                   </div>
 
-                  {/* Prioridad */}
                   <div>
-                    <label className="mb-3 block text-xs font-bold uppercase" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-                      Prioridad
-                    </label>
-                    <div className="space-y-2">
-                      {['Alta', 'Media', 'Baja'].map((opcion) => (
-                        <button
-                          key={opcion}
-                          type="button"
-                          onClick={() => setPrioridad(opcion)}
-                          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-                            prioridad === opcion ? 'border-2 border-[#6D5BD0] bg-[#E9D5FF]' : 'border border-transparent hover:bg-slate-50'
-                          }`}
-                          style={{ fontFamily: 'Nunito, sans-serif' }}
-                        >
-                          <Circle
-                            className="h-3 w-3"
-                            fill={prioridad === opcion ? 'currentColor' : 'none'}
-                            style={{
-                              color: opcion === 'Alta' ? '#E53E3E' :
-                                     opcion === 'Media' ? '#D97706' : '#059669'
-                            }}
-                          />
-                          <span style={{ color: prioridad === opcion ? '#4A3A6B' : '#6B6B80' }}>
-                            {opcion}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                    <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Prioridad</label>
+                    <select
+                      value={prioridad}
+                      onChange={(e) => setPrioridad(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-purple-400"
+                    >
+                      <option value="Alta">Alta</option>
+                      <option value="Media">Media</option>
+                      <option value="Baja">Baja</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* Fecha límite */}
+                {/* Fecha Limite */}
                 <div>
-                  <label className="mb-3 block text-xs font-bold uppercase" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-                    Fecha límite
-                  </label>
+                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Fecha límite</label>
                   <input
                     type="date"
                     value={fechaLimite}
                     onChange={(e) => setFechaLimite(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:border-[#6D5BD0]"
-                    style={{ fontFamily: 'Nunito, sans-serif' }}
+                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none focus:border-purple-400"
                   />
                 </div>
 
                 {/* Responsable */}
                 <div>
-                  <label className="mb-3 block text-xs font-bold uppercase" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-                    Responsable
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {miembros.map((miembro, index) => (
-                      <button
-                        key={miembro.id}
-                        type="button"
-                        onClick={() => setSelectedResponsableId(String(miembro.id))}
-                        className={`relative flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold transition ${
-                          selectedResponsableId === String(miembro.id) ? 'ring-2 ring-[#6D5BD0] ring-offset-2' : ''
-                        }`}
-                        style={{ backgroundColor: getAvatarColor(index), color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-                        title={miembro.nombre}
-                      >
-                        {getInitials(miembro.nombre)}
-                      </button>
-                    ))}
+                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Responsable</label>
+                  <div className="flex flex-wrap gap-2">
+                    {miembros.map((m, idx) => {
+                      const isSelected = selectedResponsableId === String(m.id)
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setSelectedResponsableId(String(m.id))}
+                          className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white transition ${
+                            isSelected ? 'ring-2 ring-purple-600 ring-offset-2' : ''
+                          }`}
+                          style={{ backgroundColor: getAvatarColor(idx) }}
+                          title={m.nombre}
+                        >
+                          {getInitials(m.nombre)}
+                        </button>
+                      )
+                    })}
                   </div>
-                  <p className="text-sm" style={{ color: '#4A3A6B', fontFamily: 'Nunito, sans-serif' }}>
-                    {miembros.find(m => String(m.id) === selectedResponsableId)?.nombre || 'Sin asignar'}
-                  </p>
                 </div>
 
                 {/* Descripción */}
                 <div>
-                  <label className="mb-3 block text-xs font-bold uppercase" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-                    Descripción
-                  </label>
+                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Descripción</label>
                   <textarea
+                    rows={3}
                     value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
-                    rows={4}
-                    placeholder="Describe los objetivos y criterios de aceptación..."
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#6D5BD0]"
-                    style={{ fontFamily: 'Nunito, sans-serif' }}
+                    placeholder="Detalles sobre esta actividad..."
+                    className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-purple-400"
                   />
                 </div>
 
-                {/* Enlace de evidencia */}
+                {/* Evidencias */}
                 <div>
-                  <label className="mb-3 block text-xs font-bold uppercase" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-                    Enlace de evidencia
-                  </label>
-                  <div className="relative">
-                    <Link className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Evidencias</label>
+                  <div className="flex gap-2">
                     <input
                       type="url"
                       value={nuevaEvidenciaUrl}
                       onChange={(e) => setNuevaEvidenciaUrl(e.target.value)}
-                      onKeyDown={handleEvidenciaKeyDown}
                       placeholder="https://..."
-                      className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-[#6D5BD0]"
-                      style={{ fontFamily: 'Nunito, sans-serif' }}
+                      className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-400"
                     />
+                    <button
+                      type="button"
+                      onClick={handleAddEvidencia}
+                      disabled={!nuevaEvidenciaUrl.trim()}
+                      className="rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white transition disabled:opacity-40"
+                    >
+                      Adjuntar
+                    </button>
                   </div>
-                  <div className="mt-2 flex items-center gap-2 text-sm" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-                    <Paperclip className="h-4 w-4" />
-                    <span>{evidencias.length} archivo(s) adjunto(s)</span>
-                  </div>
+                  {evidencias.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {evidencias.map((ev, i) => (
+                        <a
+                          key={i}
+                          href={ev.url_evidencia || ev.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 text-xs text-purple-700 hover:underline"
+                        >
+                          <Paperclip className="h-3 w-3" />
+                          <span className="truncate">{ev.descripcion || ev.url_evidencia || ev.url}</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                {/* Footer botones */}
-                <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-200 mt-6">
+                {/* Botones de Acción */}
+                <div className="flex items-center justify-between border-t border-slate-100 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
-                    style={{ fontFamily: 'Nunito, sans-serif' }}
+                    className="flex items-center gap-1 text-xs font-bold text-red-500 hover:text-red-700"
                   >
-                    <X className="h-4 w-4" />
-                    Eliminar
+                    <Trash2 className="h-4 w-4" /> Eliminar
                   </button>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600"
-                      style={{ fontFamily: 'Nunito, sans-serif' }}
+                      className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                     >
                       Cancelar
                     </button>
@@ -316,121 +261,77 @@ export default function ActivityDetailModal({
                       type="button"
                       onClick={handleGuardarCambios}
                       disabled={isSaving}
-                      className="flex items-center gap-2 rounded-full bg-[#6D5BD0] px-5 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-70 hover:bg-[#5a4bb8]"
-                      style={{ fontFamily: 'Nunito, sans-serif' }}
+                      className="rounded-xl bg-purple-600 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-purple-700"
                     >
-                      <Check className="h-4 w-4" />
                       {isSaving ? 'Guardando...' : 'Guardar cambios'}
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Columna derecha - Notas de seguimiento */}
-              <div className="w-full lg:w-96 p-6 bg-slate-50">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" style={{ color: '#6D5BD0' }} />
-                    <span className="text-sm font-bold" style={{ color: '#4A3A6B', fontFamily: 'Nunito, sans-serif' }}>
-                      Notas de seguimiento
-                    </span>
-                  </div>
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#6D5BD0] text-xs font-semibold text-white" style={{ fontFamily: 'Nunito, sans-serif' }}>
-                    {comentarios.length}
-                  </div>
+              {/* Columna Derecha (Notas / Comentarios) */}
+              <div className="flex w-80 flex-col border-l border-slate-100 bg-slate-50/50 p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-700">Notas ({comentarios.length})</span>
                 </div>
 
-                {/* Lista de comentarios */}
-                <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
+                {/* Lista de Comentarios */}
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
                   {comentarios.length === 0 ? (
-                    <p className="text-sm text-slate-500" style={{ fontFamily: 'Nunito, sans-serif' }}>
-                      Aún no hay notas de seguimiento.
-                    </p>
-                  ) : null}
-                  
-                  {comentarios.map((comentario) => {
-                    const usuario = Array.isArray(comentario.usuarios) ? comentario.usuarios[0] : comentario.usuarios
-                    const nombreUsuario = usuario?.nombre || usuario?.correo || 'Usuario'
-                    const inicialesUsuario = getInitials(nombreUsuario)
-                    
-                    return (
-                      <div key={comentario.id_comentario}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <div
-                            className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold"
-                            style={{ backgroundColor: '#6D5BD0', color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-                          >
-                            {inicialesUsuario}
+                    <p className="py-8 text-center text-xs text-slate-400">Sin notas aún.</p>
+                  ) : (
+                    comentarios.map((c, i) => {
+                      const u = Array.isArray(c.usuarios) ? c.usuarios[0] : c.usuarios
+                      const nombre = u?.nombre || u?.correo || 'Usuario'
+                      return (
+                        <div key={c.id_comentario || i} className="rounded-2xl bg-white p-3 shadow-xs border border-slate-100">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-purple-900">{nombre}</span>
+                            <span className="text-[10px] text-slate-400">{formatDate(c.fecha_creacion)}</span>
                           </div>
-                          <span className="text-xs font-bold" style={{ color: '#4A3A6B', fontFamily: 'Nunito, sans-serif' }}>
-                            {nombreUsuario}
-                          </span>
-                          <span className="text-xs" style={{ color: '#9CA3AF', fontFamily: 'Nunito, sans-serif' }}>
-                            {formatDate(comentario.fecha_comentario)}
-                          </span>
+                          <p className="text-xs text-slate-600">{c.contenido}</p>
                         </div>
-                        <div className="rounded-xl bg-slate-100 p-3">
-                          <p className="text-sm" style={{ color: '#374151', fontFamily: 'Nunito, sans-serif' }}>
-                            {comentario.comentario}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })
+                  )}
                 </div>
 
-                {/* Input de nuevo comentario */}
-                <div className="flex gap-2">
-                  <div
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                    style={{ backgroundColor: '#6D5BD0', color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-                  >
-                    TU
-                  </div>
+                {/* Input de Comentarios */}
+                <div className="mt-4 flex gap-2">
                   <input
                     type="text"
                     value={nuevoComentario}
                     onChange={(e) => setNuevoComentario(e.target.value)}
-                    placeholder="Escribe una nota... (Enter para enviar)"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && nuevoComentario.trim()) {
-                        e.preventDefault()
-                        handleAddComentario()
-                      }
-                    }}
-                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#6D5BD0]"
-                    style={{ fontFamily: 'Nunito, sans-serif' }}
+                    placeholder="Escribe una nota..."
+                    onKeyDown={(e) => e.key === 'Enter' && nuevoComentario.trim() && handleAddComentario()}
+                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-purple-400"
                   />
+                  <button
+                    type="button"
+                    onClick={handleAddComentario}
+                    disabled={!nuevoComentario.trim()}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-600 text-white disabled:opacity-40"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
-          ) : null}
-
-          {!isLoading && !actividad && !error ? (
-            <div className="p-6 flex items-center gap-2 text-sm text-slate-500">
-              <User className="h-4 w-4" />
-              No se pudo cargar la actividad.
-            </div>
-          ) : null}
+          )}
         </div>
       </div>
 
-      {/* Modal de confirmación de eliminación */}
-      {showDeleteConfirm ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 px-4 py-6">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h2 className="text-lg font-bold" style={{ color: '#4A3A6B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-              ¿Eliminar actividad?
-            </h2>
-            <p className="mt-2 text-sm text-slate-600" style={{ fontFamily: 'Nunito, sans-serif' }}>
-              Esta acción no se puede deshacer. ¿Seguro que deseas eliminar esta actividad?
-            </p>
-            <div className="mt-6 flex justify-end gap-3">
+      {/* Modal Confirmar Eliminar */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+            <h3 className="text-base font-extrabold text-slate-800">¿Eliminar actividad?</h3>
+            <p className="mt-1 text-xs text-slate-500">Esta acción no se puede deshacer.</p>
+            <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600"
-                style={{ fontFamily: 'Nunito, sans-serif' }}
+                className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
               >
                 Cancelar
               </button>
@@ -438,15 +339,14 @@ export default function ActivityDetailModal({
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
-                style={{ fontFamily: 'Nunito, sans-serif' }}
+                className="rounded-xl bg-red-500 px-3 py-1.5 text-xs font-bold text-white"
               >
-                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                {isDeleting ? 'Eliminando...' : 'Sí, eliminar'}
               </button>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </>
   )
 }

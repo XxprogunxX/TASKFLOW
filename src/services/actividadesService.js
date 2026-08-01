@@ -64,6 +64,7 @@ export async function updateResponsableActividad(idActividad, idResponsable) {
     .select(`
       id_actividad,
       id_responsable,
+      titulo,
       responsable:usuarios!id_responsable(id_usuario, nombre, correo)
     `)
     .single()
@@ -71,6 +72,8 @@ export async function updateResponsableActividad(idActividad, idResponsable) {
   if (error) {
     throw error
   }
+
+
 
   return data
 }
@@ -89,7 +92,6 @@ export async function fetchActividadDetalle(idActividad) {
       id_proyecto,
       id_responsable,
       fecha_creacion,
-      fecha_actualizacion,
       responsable:usuarios!id_responsable(id_usuario, nombre, correo)
     `)
     .eq('id_actividad', idActividad)
@@ -108,13 +110,13 @@ export async function fetchComentariosActividad(idActividad) {
     .from('comentarios')
     .select(`
       id_comentario,
-      comentario,
-      fecha_comentario,
+      contenido,
+      fecha_creacion,
       id_usuario,
       usuarios(id_usuario, nombre, correo)
     `)
     .eq('id_actividad', idActividad)
-    .order('fecha_comentario', { ascending: false })
+    .order('fecha_creacion', { ascending: true })
 
   if (error) {
     throw error
@@ -130,12 +132,12 @@ export async function addComentarioActividad(idActividad, idUsuario, texto) {
     .insert({
       id_actividad: idActividad,
       id_usuario: idUsuario,
-      comentario: texto.trim(),
+      contenido: texto.trim(),
     })
     .select(`
       id_comentario,
-      comentario,
-      fecha_comentario,
+      contenido,
+      fecha_creacion,
       id_usuario,
       usuarios(id_usuario, nombre, correo)
     `)
@@ -152,9 +154,9 @@ export async function addComentarioActividad(idActividad, idUsuario, texto) {
 export async function fetchEvidenciasActividad(idActividad) {
   const { data, error } = await supabase
     .from('evidencias')
-    .select('*')
+    .select('id_evidencia, url_evidencia, descripcion, fecha_subida')
     .eq('id_actividad', idActividad)
-    .order('fecha_registro', { ascending: false })
+    .order('fecha_subida', { ascending: false })
 
   if (error) {
     throw error
@@ -186,10 +188,7 @@ export async function addEvidenciaActividad(idActividad, urlEvidencia, descripci
 export async function updateActividadCompleta(idActividad, campos) {
   const { data, error } = await supabase
     .from('actividades')
-    .update({
-      ...campos,
-      fecha_actualizacion: new Date().toISOString(),
-    })
+    .update(campos)
     .eq('id_actividad', idActividad)
     .select(`
       id_actividad,

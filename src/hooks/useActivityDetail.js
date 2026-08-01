@@ -22,14 +22,14 @@ const priorityMap = {
 const estadoMap = {
   pendiente: 'Pendiente',
   en_progreso: 'En proceso',
-  en_revision: 'En revisión',
+  en_revisión: 'En revisión',
   completada: 'Completada',
 }
 
 const reverseEstadoMap = {
   'Pendiente': 'pendiente',
   'En proceso': 'en_progreso',
-  'En revisión': 'en_revision',
+  'En revisión': 'en_revisión',
   'Completada': 'completada',
 }
 
@@ -118,6 +118,7 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
           setSelectedResponsableId(detalle.id_responsable ? String(detalle.id_responsable) : '')
         }
       } catch (err) {
+        console.error('[useActivityDetail] Error cargando actividad:', err)
         if (isMounted) {
           setError(err.message || 'No se pudo cargar la actividad.')
         }

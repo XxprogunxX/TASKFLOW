@@ -1,19 +1,33 @@
-import { Users, Star, ArrowRight } from 'lucide-react'
+import { Users, Star, ArrowRight, UserPlus } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import IntegranteEquipo from '../IntegranteEquipo'
+import ModalInvitarMiembro from '../ModalInvitarMiembro'
 
 export default function TarjetaEquipoPrincipal({ equipo, integrantes, proyecto }) {
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+
   return (
     <div className="flex h-full flex-col rounded-2xl bg-white p-8 shadow-lg" style={{ border: '2px solid #6D5BD0' }}>
-      {/* Header: Estrella + "EQUIPO PRINCIPAL" */}
-      <div className="mb-6 flex items-center gap-2">
-        <Star className="h-4 w-4" style={{ color: '#F59E0B' }} fill="#F59E0B" />
-        <span
-          className="text-xs font-bold"
-          style={{ color: '#6D5BD0', fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em' }}
+      {/* Header: Estrella + "EQUIPO PRINCIPAL" + Invitar */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Star className="h-4 w-4" style={{ color: '#F59E0B' }} fill="#F59E0B" />
+          <span
+            className="text-xs font-bold"
+            style={{ color: '#6D5BD0', fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em' }}
+          >
+            EQUIPO PRINCIPAL
+          </span>
+        </div>
+        <button
+          onClick={() => setIsInviteModalOpen(true)}
+          className="flex items-center gap-2 rounded-xl bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-600 transition hover:bg-purple-100"
+          title="Invitar Miembro"
         >
-          EQUIPO PRINCIPAL
-        </span>
+          <UserPlus className="h-4 w-4" />
+          <span>Invitar</span>
+        </button>
       </div>
       
       {/* Ícono grande del equipo */}
@@ -39,7 +53,7 @@ export default function TarjetaEquipoPrincipal({ equipo, integrantes, proyecto }
       </p>
       
       {/* Proyecto asociado */}
-      {proyecto ? (
+      {proyecto && proyecto.id_proyecto ? (
         <div className="mb-6">
           <span className="text-sm" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
             Proyecto:{' '}
@@ -49,7 +63,7 @@ export default function TarjetaEquipoPrincipal({ equipo, integrantes, proyecto }
             className="text-sm font-semibold underline hover:opacity-80"
             style={{ color: '#6D5BD0', fontFamily: 'Nunito, sans-serif' }}
           >
-            {proyecto.nombre}
+            {proyecto.nombre || 'Ver Proyecto'}
             <ArrowRight className="ml-1 inline h-3 w-3" />
           </Link>
         </div>
@@ -77,6 +91,12 @@ export default function TarjetaEquipoPrincipal({ equipo, integrantes, proyecto }
           />
         ))}
       </div>
+
+      <ModalInvitarMiembro 
+        isOpen={isInviteModalOpen} 
+        onClose={() => setIsInviteModalOpen(false)} 
+        equipoId={equipo.id_equipo} 
+      />
     </div>
   )
 }

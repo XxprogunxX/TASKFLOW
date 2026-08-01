@@ -6,6 +6,7 @@ import {
   Plus,
   X,
   Zap,
+  Check,
 } from 'lucide-react'
 import { useNewActivity } from '../../hooks/useNewActivity'
 
@@ -172,7 +173,11 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated })
                       key={responsable.id}
                       type="button"
                       onClick={() => setSelectedResponsable(responsable)}
-                      className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2"
+                      className={`flex items-center gap-2 rounded-2xl border px-3 py-2 transition-all ${
+                        isSelected 
+                          ? 'border-[#6D5BD0] bg-[#6D5BD0]/5 shadow-sm ring-1 ring-[#6D5BD0]/20' 
+                          : 'border-slate-200 bg-white hover:border-[#6D5BD0]/50'
+                      }`}
                     >
                       <span
                         className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold text-white"
@@ -180,8 +185,12 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated })
                       >
                         {responsable.iniciales}
                       </span>
-                      <span className="text-sm font-medium text-slate-700">{responsable.nombre}</span>
-                      {isSelected ? <span className="ml-1 h-3 w-3 rounded-full border-2 border-[#6D5BD0] bg-white" /> : null}
+                      <span className={`text-sm font-medium ${isSelected ? 'text-[#6D5BD0]' : 'text-slate-700'}`}>
+                        {responsable.nombre}
+                      </span>
+                      {isSelected && (
+                        <Check className="ml-1 h-4 w-4 text-[#6D5BD0]" />
+                      )}
                     </button>
                   )
                 })}
