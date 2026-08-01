@@ -161,6 +161,11 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
       return
     }
 
+    if (!dueDate) {
+      setError('Por favor, selecciona una fecha límite de entrega para la actividad.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {

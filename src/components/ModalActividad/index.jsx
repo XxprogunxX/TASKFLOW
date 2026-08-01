@@ -204,7 +204,7 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
 
             <div>
               <label className="mb-2 block text-sm font-semibold" style={{ color: '#2D2D3F', fontFamily: 'Nunito, sans-serif' }}>
-                Fecha de entrega
+                Fecha de entrega <span className="text-[#E53E3E]">*</span>
               </label>
               <div className="relative">
                 <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B80]" />
