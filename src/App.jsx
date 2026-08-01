@@ -9,11 +9,16 @@ import MisTareasPage from './pages/MisTareasPage.jsx'
 import PanelAvancePage from './pages/PanelAvancePage.jsx'
 import BandejaPage from './pages/BandejaPage.jsx'
 
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
+
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/tablero" element={<BoardPage />} />
       <Route path="/panel-avance" element={<PanelAvancePage />} />
       <Route path="/mis-tableros" element={<MisTablerosPage />} />

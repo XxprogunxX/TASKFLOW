@@ -175,9 +175,9 @@ export default function LoginPage({ onLoginSuccess = () => console.log('Login ex
 
             <p className="text-center text-sm text-gray-500 mt-6" style={{ fontFamily: 'Nunito, sans-serif' }}>
               ¿Olvidaste tu contraseña?{' '}
-              <span className="font-semibold text-[#6d5bd0]" style={{ fontFamily: 'Nunito, sans-serif' }}>
+              <Link to="/forgot-password" className="font-semibold text-[#6d5bd0]">
                 Recuperar acceso
-              </span>
+              </Link>
             </p>
 
             <p className="text-center text-sm text-gray-500 mt-3" style={{ fontFamily: 'Nunito, sans-serif' }}>
