@@ -173,19 +173,23 @@ export default function Header({
           </div>
         </div>
 
-        <nav className="hidden flex-1 items-center justify-center gap-2 sm:flex">
+        <nav
+          className="hidden items-center justify-center gap-1 sm:flex px-2 py-1.5 rounded-full"
+          style={{ backgroundColor: '#F5F3FF', border: '1px solid #EAE6FF' }}
+        >
           {navItems.map((item) => {
             const isActive = item.label === active
             const content = (
               <>
-                <item.Icon className="h-4 w-4" style={{ color: isActive ? '#4A3A6B' : '#6B6B80' }} />
+                <item.Icon className="h-4 w-4" style={{ color: isActive ? '#6D5BD0' : '#7C7C93' }} />
                 {item.label}
               </>
             )
-            const className = 'flex items-center gap-2 rounded-2xl px-4 py-2 text-sm transition-colors'
+            const className = 'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:opacity-90'
             const style = {
-              backgroundColor: isActive ? '#F5F3FF' : 'transparent',
-              color: isActive ? '#4A3A6B' : '#6B6B80',
+              backgroundColor: isActive ? '#FFFFFF' : 'transparent',
+              color: isActive ? '#6D5BD0' : '#7C7C93',
+              boxShadow: isActive ? '0 2px 8px rgba(109, 91, 208, 0.08), 0 1px 3px rgba(109, 91, 208, 0.04)' : 'none',
               fontFamily: 'Nunito, sans-serif',
             }
 
