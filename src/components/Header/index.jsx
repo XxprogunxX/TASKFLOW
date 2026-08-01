@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Bell, Book, ChevronDown, CheckSquare, Inbox, LayoutGrid, Users, TrendingUp, Eye, LogOut } from 'lucide-react'
+import { Bell, Book, ChevronDown, CheckSquare, Inbox, LayoutGrid, Users, TrendingUp, LogOut } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
 import { getAvatarColor, getInitials } from '../../utils/projectUtils'
@@ -11,7 +11,6 @@ const navItems = [
   { label: 'Mis Equipos', Icon: Users, path: '/mis-equipos' },
   { label: 'Bandeja', Icon: Inbox, path: '/bandeja' },
   { label: 'Mis Tareas', Icon: CheckSquare, path: '/mis-tareas' },
-  { label: 'Especificaciones', Icon: Eye, path: '/especificaciones' },
 ]
 
 export default function Header({
