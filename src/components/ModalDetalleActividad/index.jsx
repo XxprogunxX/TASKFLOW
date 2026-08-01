@@ -1,4 +1,4 @@
-import { Calendar, Check, ExternalLink, Link2, MessageSquare, Paperclip, Save, Send, Trash2, User, X } from 'lucide-react'
+import { Calendar, Check, CheckCircle2, ExternalLink, Link2, MessageSquare, Paperclip, Save, Send, Trash2, User, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useActivityDetail } from '../../hooks/useActivityDetail'
 
@@ -123,7 +123,12 @@ export default function ModalDetalleActividad({
               {/* Columna Izquierda */}
               <div className="flex-1 overflow-y-auto p-8 space-y-6">
                 {error && <div className="rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-600">{error}</div>}
-                {success && <div className="rounded-2xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700">? {success}</div>}
+                {success && (
+                  <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                    <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-600" />
+                    <span>{success}</span>
+                  </div>
+                )}
 
                 {/* Estado y Prioridad */}
                 <div className="grid grid-cols-2 gap-4">
