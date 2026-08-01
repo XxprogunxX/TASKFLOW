@@ -1,11 +1,13 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { LayoutGrid, Lock, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react'
+import { LayoutGrid, Lock, ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
@@ -97,14 +99,21 @@ export default function ResetPasswordPage() {
               <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
                 required
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-12 text-sm outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20"
                 style={{ fontFamily: 'Nunito, sans-serif' }}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#6d5bd0] transition"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
@@ -116,14 +125,21 @@ export default function ResetPasswordPage() {
               <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 id="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repite la contraseña"
                 required
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-12 text-sm outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20"
                 style={{ fontFamily: 'Nunito, sans-serif' }}
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#6d5bd0] transition"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 

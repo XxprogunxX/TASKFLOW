@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { LayoutGrid, Users, Bell, CheckSquare, AlertCircle } from 'lucide-react'
+import { LayoutGrid, Users, Bell, CheckSquare, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useLoginForm } from '../hooks/useLoginForm'
 import BoardPage from './BoardPage.jsx'
 export default function LoginPage({ onLoginSuccess = () => console.log('Login exitoso') }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleLoginSuccess = (data) => {
     onLoginSuccess(data)
@@ -137,16 +138,25 @@ export default function LoginPage({ onLoginSuccess = () => console.log('Login ex
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
                   Contraseña
                 </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={values.password}
-                  onChange={handleChange}
-                  className={`w-full rounded-xl border ${errors.password ? 'border-red-400' : 'border-gray-200'} bg-white px-4 py-3 text-gray-700 outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20`}
-                  style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.875rem' }}
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={values.password}
+                    onChange={handleChange}
+                    className={`w-full rounded-xl border ${errors.password ? 'border-red-400' : 'border-gray-200'} bg-white pl-4 pr-12 py-3 text-gray-700 outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20`}
+                    style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.875rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#6d5bd0] transition"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="mt-2 text-xs text-[#E53E3E] flex items-center">
                     <AlertCircle className="w-4 h-4 mr-1" />
