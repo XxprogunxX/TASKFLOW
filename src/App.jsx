@@ -8,6 +8,7 @@ import MisEquiposPage from './pages/MisEquiposPage.jsx'
 import MisTareasPage from './pages/MisTareasPage.jsx'
 import PanelAvancePage from './pages/PanelAvancePage.jsx'
 import BandejaPage from './pages/BandejaPage.jsx'
+import EspecificacionesPage from './pages/EspecificacionesPage.jsx'
 
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
@@ -25,6 +26,7 @@ export default function App() {
       <Route path="/mis-equipos" element={<MisEquiposPage />} />
       <Route path="/mis-tareas" element={<MisTareasPage />} />
       <Route path="/bandeja" element={<BandejaPage />} />
+      <Route path="/especificaciones" element={<EspecificacionesPage />} />
       <Route path="/proyecto/:id" element={<ProyectoDetailPage />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
