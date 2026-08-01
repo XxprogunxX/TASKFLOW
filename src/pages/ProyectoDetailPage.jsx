@@ -95,7 +95,10 @@ export default function ProyectoDetailPage() {
 
             <button
               type="button"
-              onClick={() => navigate('/tablero')}
+              onClick={() => {
+                localStorage.setItem('taskflow_active_project_id', String(proyecto.id_proyecto))
+                navigate(`/tablero?proyectoId=${proyecto.id_proyecto}`)
+              }}
               className="mt-8 inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-sm"
               style={{ background: getProgressStyle(100).gradient, fontFamily: 'Nunito, sans-serif' }}
             >

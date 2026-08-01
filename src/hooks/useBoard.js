@@ -56,7 +56,7 @@ const mapResponsableToTaskOwner = (responsable) => {
   }
 }
 
-export function useBoard() {
+export function useBoard(selectedProyectoId = null) {
   const [usuario, setUsuario] = useState(null)
   const [columnas, setColumnas] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -181,16 +181,36 @@ export function useBoard() {
           proyectoId: null,
         }
 
-        let proyectoId = null
+        let proyectoId = selectedProyectoId || localStorage.getItem('taskflow_active_project_id') || null
         let proyectoNombre = 'Proyecto'
 
-        if (perfil.idUsuario) {
+        if (proyectoId) {
+          const { data: pData } = await supabase
+            .from('proyectos')
+            .select('id_proyecto, nombre')
+            .eq('id_proyecto', proyectoId)
+            .maybeSingle()
+
+          if (pData) {
+            proyectoId = pData.id_proyecto
+            proyectoNombre = pData.nombre
+          } else {
+            proyectoId = null
+          }
+        }
+
+        if (!proyectoId && perfil.idUsuario) {
           const proyectoData = await getProyectoForUsuario(perfil.idUsuario)
           proyectoId = proyectoData.proyectoId
           proyectoNombre = proyectoData.proyectoNombre || proyectoNombre
         }
 
+        if (proyectoId) {
+          localStorage.setItem('taskflow_active_project_id', String(proyectoId))
+        }
+
         perfil.proyectoId = proyectoId
+        perfil.proyectoNombre = proyectoNombre
 
         if (!proyectoId) {
           perfil.sinProyectos = true
@@ -284,7 +304,7 @@ export function useBoard() {
     return () => {
       isMounted = false
     }
-  }, [refreshKey])
+  }, [refreshKey, selectedProyectoId])
 
   return {
     usuario,

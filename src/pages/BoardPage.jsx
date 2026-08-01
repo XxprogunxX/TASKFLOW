@@ -36,8 +36,12 @@ const priorityStyles = {
   },
 }
 
+import { useSearchParams } from 'react-router-dom'
+
 export default function BoardPage() {
-  const { usuario, columnas, isLoading, error, refreshBoard, updateTaskResponsable, updateTaskFields, deleteTaskFromBoard } = useBoard()
+  const [searchParams] = useSearchParams()
+  const targetProyectoId = searchParams.get('proyectoId') || null
+  const { usuario, columnas, isLoading, error, refreshBoard, updateTaskResponsable, updateTaskFields, deleteTaskFromBoard } = useBoard(targetProyectoId)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)

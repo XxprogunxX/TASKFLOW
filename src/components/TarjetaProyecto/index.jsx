@@ -11,7 +11,8 @@ export default function TarjetaProyecto({ proyecto }) {
   const miembrosExtra = proyecto.miembros.length - MAX_AVATARES
 
   const handleClick = () => {
-    navigate(`/proyecto/${proyecto.id}`)
+    localStorage.setItem('taskflow_active_project_id', String(proyecto.id))
+    navigate(`/tablero?proyectoId=${proyecto.id}`)
   }
 
   return (

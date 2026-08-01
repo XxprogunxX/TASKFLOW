@@ -115,7 +115,7 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     return () => {
       isMounted = false
     }
-  }, [isOpen, resetForm])
+  }, [isOpen, resetForm, propProyectoId])
 
   const addTag = useCallback((event) => {
     event.preventDefault()
