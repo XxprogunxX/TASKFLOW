@@ -147,12 +147,17 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     setSuccess('')
 
     if (!title.trim()) {
-      setError('El título es obligatorio.')
+      setError('Por favor, ingresa el nombre/título de la actividad.')
+      return
+    }
+
+    if (!selectedResponsable) {
+      setError('Por favor, selecciona un responsable para la actividad.')
       return
     }
 
     if (!priority) {
-      setError('Selecciona una prioridad.')
+      setError('Por favor, selecciona una prioridad para la actividad.')
       return
     }
 

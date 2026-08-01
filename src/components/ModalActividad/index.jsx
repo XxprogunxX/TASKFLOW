@@ -157,7 +157,7 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-3 block text-sm font-semibold" style={{ color: '#2D2D3F', fontFamily: 'Nunito, sans-serif' }}>
-                Responsable
+                Responsable <span className="text-[#E53E3E]">*</span>
               </label>
               <div className="flex flex-wrap gap-3">
                 {isLoadingResponsables ? (
@@ -221,7 +221,7 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
 
           <div>
             <label className="mb-3 block text-sm font-semibold" style={{ color: '#2D2D3F', fontFamily: 'Nunito, sans-serif' }}>
-              Prioridad
+              Prioridad <span className="text-[#E53E3E]">*</span>
             </label>
             <div className="flex flex-wrap gap-3">
               {Object.entries(priorityStyles).map(([label, config]) => {
