@@ -1,13 +1,13 @@
-import { Bell, Book, ChevronDown, CheckSquare, Eye, Inbox, LayoutGrid, Users } from 'lucide-react'
+import { Bell, Book, ChevronDown, CheckSquare, Eye, Inbox, LayoutGrid, Users, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const navItems = [
   { label: 'Tablero', Icon: LayoutGrid, path: '/tablero' },
+  { label: 'Panel de Avance', Icon: TrendingUp, path: '/panel-avance' },
   { label: 'Mis Tableros', Icon: Book, path: '/mis-tableros' },
   { label: 'Mis Equipos', Icon: Users, path: '/mis-equipos' },
   { label: 'Bandeja', Icon: Inbox, path: null },
-  { label: 'Mis Tareas', Icon: CheckSquare, path: null },
-  { label: 'Especi...', Icon: Eye, path: null },
+  { label: 'Mis Tareas', Icon: CheckSquare, path: '/mis-tareas' },
 ]
 
 export default function Header({ active = 'Tablero', initials = '?', avatarColor = '#6D5BD0', nombreUsuario = 'Usuario', notificationCount = 3 }) {
