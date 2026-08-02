@@ -41,10 +41,15 @@ import { useSearchParams } from 'react-router-dom'
 export default function BoardPage() {
   const [searchParams] = useSearchParams()
   const targetProyectoId = searchParams.get('proyectoId') || null
-  const { usuario, columnas, isLoading, error, refreshBoard, updateTaskResponsable, updateTaskFields, deleteTaskFromBoard } = useBoard(targetProyectoId)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [initialColumnTitle, setInitialColumnTitle] = useState('Por Hacer')
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+
+  const handleOpenNewTaskModal = (columnTitle = 'Por Hacer') => {
+    setInitialColumnTitle(columnTitle)
+    setIsModalOpen(true)
+  }
 
   const initials = usuario?.iniciales || '?'
   const avatarColor = usuario?.color || '#6D5BD0'
@@ -80,7 +85,7 @@ export default function BoardPage() {
               />
             </label>
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => handleOpenNewTaskModal('Por Hacer')}
               className="inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition hover:opacity-95"
               style={{
                 background: 'linear-gradient(135deg, #6d5bd0 0%, #3a2f8f 100%)',
@@ -153,7 +158,8 @@ export default function BoardPage() {
                     {column.count}
                   </div>
                   <button
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-2xl"
+                    onClick={() => handleOpenNewTaskModal(column.title)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-2xl transition hover:bg-slate-100 hover:scale-105 active:scale-95 cursor-pointer"
                     style={{ backgroundColor: '#FFFFFF', color: '#6B6B80' }}
                     aria-label={`Agregar tarea a ${column.title}`}
                   >
@@ -289,6 +295,7 @@ export default function BoardPage() {
         onClose={() => setIsModalOpen(false)}
         proyectoId={usuario?.proyectoId}
         onActivityCreated={refreshBoard}
+        initialColumn={initialColumnTitle}
       />
 
       <ActivityDetailModal

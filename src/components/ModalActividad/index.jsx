@@ -50,7 +50,7 @@ const estadoStyles = {
   },
 }
 
-export default function NewActivityModal({ isOpen, onClose, onActivityCreated, proyectoId }) {
+export default function NewActivityModal({ isOpen, onClose, onActivityCreated, proyectoId, initialColumn = 'Por Hacer' }) {
   const {
     responsables,
     selectedResponsable,
@@ -78,7 +78,7 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
     isLoadingResponsables,
     error,
     success,
-  } = useNewActivity({ isOpen, onActivityCreated, proyectoId })
+  } = useNewActivity({ isOpen, onActivityCreated, proyectoId, initialColumn })
 
   if (!isOpen) {
     return null

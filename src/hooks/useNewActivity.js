@@ -16,14 +16,14 @@ const estadoMap = {
   'Completado': 'completada',
 }
 
-export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProyectoId }) {
+export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProyectoId, initialColumn = 'Por Hacer' }) {
   const [responsables, setResponsables] = useState([])
   const [selectedResponsable, setSelectedResponsable] = useState(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [priority, setPriority] = useState('Media')
-  const [estadoInicial, setEstadoInicial] = useState('Por Hacer')
+  const [estadoInicial, setEstadoInicial] = useState(initialColumn)
   const [tags, setTags] = useState([])
   const [tagInput, setTagInput] = useState('')
   const [files, setFiles] = useState([])
@@ -37,20 +37,22 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     setDescription('')
     setDueDate('')
     setPriority('Media')
-    setEstadoInicial('Por Hacer')
+    setEstadoInicial(initialColumn)
     setTags([])
     setTagInput('')
     setFiles([])
     setSelectedResponsable(null)
     setError('')
     setSuccess('')
-  }, [])
+  }, [initialColumn])
 
   useEffect(() => {
     if (!isOpen) {
       resetForm()
       return
     }
+
+    setEstadoInicial(initialColumn)
 
     let isMounted = true
 
