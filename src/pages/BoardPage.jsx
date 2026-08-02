@@ -46,6 +46,17 @@ export default function BoardPage() {
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
+  const {
+    usuario,
+    columnas,
+    isLoading,
+    error,
+    refreshBoard,
+    updateTaskResponsable,
+    updateTaskFields,
+    deleteTaskFromBoard,
+  } = useBoard(targetProyectoId)
+
   const handleOpenNewTaskModal = (columnTitle = 'Por Hacer') => {
     setInitialColumnTitle(columnTitle)
     setIsModalOpen(true)
