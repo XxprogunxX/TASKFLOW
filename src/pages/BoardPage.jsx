@@ -46,6 +46,8 @@ export default function BoardPage() {
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
+  const [searchTerm, setSearchTerm] = useState('')
+
   const {
     usuario,
     columnas,
@@ -66,6 +68,21 @@ export default function BoardPage() {
   const avatarColor = usuario?.color || '#6D5BD0'
   const nombreUsuario = usuario?.nombre || 'Usuario'
   const proyectoLabel = usuario?.sinProyectos ? 'Aún no tienes proyectos' : usuario?.proyectoNombre || 'Proyecto'
+
+  const columnasFiltradas = columnas.map((column) => {
+    const filteredTasks = column.tasks.filter((task) => {
+      if (!searchTerm.trim()) return true
+      const query = searchTerm.toLowerCase()
+      const matchesTitle = task.title?.toLowerCase().includes(query)
+      const matchesOwner = task.ownerName?.toLowerCase().includes(query)
+      const matchesTags = task.tags?.some((t) => t.toLowerCase().includes(query))
+      return matchesTitle || matchesOwner || matchesTags
+    })
+    return {
+      ...column,
+      tasks: filteredTasks,
+    }
+  })
 
   return (
     <div className="min-h-screen bg-[#FFF5F7]" style={{ backgroundColor: '#FFF5F7', color: '#2D2D3F' }}>
@@ -91,6 +108,8 @@ export default function BoardPage() {
               <input
                 type="search"
                 placeholder="Buscar"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="h-12 rounded-2xl border border-[#E5E7F0] bg-white pl-10 pr-4 text-sm text-[#2D2D3F] outline-none"
                 style={{ fontFamily: 'Nunito, sans-serif' }}
               />
@@ -143,7 +162,7 @@ export default function BoardPage() {
 
         {!isLoading && !error && !usuario?.sinProyectos ? (
           <section className="grid gap-6 xl:grid-cols-4">
-            {columnas.map((column) => (
+            {columnasFiltradas.map((column) => (
               <div
                 key={column.title}
                 className="rounded-3xl p-5 shadow-sm"
