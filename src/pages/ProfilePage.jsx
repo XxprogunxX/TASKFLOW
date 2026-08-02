@@ -81,13 +81,26 @@ export default function ProfilePage() {
   const initials = getInitials(nombre || correo || 'Usuario')
   const avatarColor = getAvatarColor(nombre || correo || 'Usuario')
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FFF5F7]" style={{ backgroundColor: '#FFF5F7', color: '#2D2D3F' }}>
+        <Header active="Perfil" />
+        <main className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#6D5BD0]" />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#FFF5F7]" style={{ backgroundColor: '#FFF5F7', color: '#2D2D3F' }}>
       <Header
         active="Perfil"
         initials={initials}
         avatarColor={avatarColor}
-        nombreUsuario={nombre || 'Usuario'}
+        nombreUsuario={nombre}
       />
 
       <main className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
@@ -103,12 +116,7 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {loading ? (
-          <div className="flex h-40 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-[#6D5BD0]" />
-          </div>
-        ) : (
-          <div className="rounded-[32px] bg-white p-6 sm:p-8 shadow-sm border border-slate-100/80">
+        <div className="rounded-[32px] bg-white p-6 sm:p-8 shadow-sm border border-slate-100/80">
             {/* Header del Perfil con Avatar */}
             <div className="mb-8 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
               <div
