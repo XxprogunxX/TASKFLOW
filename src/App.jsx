@@ -9,7 +9,7 @@ import MisTareasPage from './pages/MisTareasPage.jsx'
 import PanelAvancePage from './pages/PanelAvancePage.jsx'
 import BandejaPage from './pages/BandejaPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
-import { RootRedirect, PublicOnlyRoute } from './components/RootRedirect.jsx'
+import { RootRedirect, PublicOnlyRoute, ProtectedRoute } from './components/RootRedirect.jsx'
 
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
@@ -28,16 +28,20 @@ export default function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/tablero" element={<BoardPage />} />
-      <Route path="/panel-avance" element={<PanelAvancePage />} />
-      <Route path="/mis-tableros" element={<MisTablerosPage />} />
-      <Route path="/mis-equipos" element={<MisEquiposPage />} />
-      <Route path="/mis-tareas" element={<MisTareasPage />} />
-      <Route path="/bandeja" element={<BandejaPage />} />
-      <Route path="/perfil" element={<ProfilePage />} />
-      <Route path="/proyecto/:id" element={<ProyectoDetailPage />} />
+      
+      {/* Rutas protegidas que requieren sesión activa */}
+      <Route path="/tablero" element={<ProtectedRoute><BoardPage /></ProtectedRoute>} />
+      <Route path="/panel-avance" element={<ProtectedRoute><PanelAvancePage /></ProtectedRoute>} />
+      <Route path="/mis-tableros" element={<ProtectedRoute><MisTablerosPage /></ProtectedRoute>} />
+      <Route path="/mis-equipos" element={<ProtectedRoute><MisEquiposPage /></ProtectedRoute>} />
+      <Route path="/mis-tareas" element={<ProtectedRoute><MisTareasPage /></ProtectedRoute>} />
+      <Route path="/bandeja" element={<ProtectedRoute><BandejaPage /></ProtectedRoute>} />
+      <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path="/proyecto/:id" element={<ProtectedRoute><ProyectoDetailPage /></ProtectedRoute>} />
+
       <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<RootRedirect />} />
     </Routes>
   )
 }
+
