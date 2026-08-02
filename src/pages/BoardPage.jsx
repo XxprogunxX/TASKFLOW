@@ -42,7 +42,7 @@ export default function BoardPage() {
   const [searchParams] = useSearchParams()
   const targetProyectoId = searchParams.get('proyectoId') || null
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [initialColumnTitle, setInitialColumnTitle] = useState('Por Hacer')
+  const [initialColumnTitle, setInitialColumnTitle] = useState('Pendiente')
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
@@ -59,7 +59,7 @@ export default function BoardPage() {
     deleteTaskFromBoard,
   } = useBoard(targetProyectoId)
 
-  const handleOpenNewTaskModal = (columnTitle = 'Por Hacer') => {
+  const handleOpenNewTaskModal = (columnTitle = 'Pendiente') => {
     setInitialColumnTitle(columnTitle)
     setIsModalOpen(true)
   }
@@ -115,7 +115,7 @@ export default function BoardPage() {
               />
             </label>
             <button
-              onClick={() => handleOpenNewTaskModal('Por Hacer')}
+              onClick={() => handleOpenNewTaskModal('Pendiente')}
               className="inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition hover:opacity-95"
               style={{
                 background: 'linear-gradient(135deg, #6d5bd0 0%, #3a2f8f 100%)',
@@ -294,11 +294,21 @@ export default function BoardPage() {
                           </div>
                           {task.hasResponsable ? (
                             <div
-                              className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold"
-                              style={{ backgroundColor: task.ownerColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
+                              className="flex items-center gap-1.5 rounded-full bg-slate-100/80 pl-1 pr-2.5 py-0.5"
                               title={task.ownerName}
                             >
-                              {task.ownerInitials}
+                              <div
+                                className="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold shrink-0"
+                                style={{ backgroundColor: task.ownerColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
+                              >
+                                {task.ownerInitials}
+                              </div>
+                              <span
+                                className="text-xs font-semibold text-[#4A3A6B] max-w-[100px] truncate"
+                                style={{ fontFamily: 'Nunito, sans-serif' }}
+                              >
+                                {task.ownerName}
+                              </span>
                             </div>
                           ) : (
                             <div
@@ -336,9 +346,18 @@ export default function BoardPage() {
         }}
         actividadId={selectedTaskId}
         proyectoId={usuario?.proyectoId}
-        onResponsableUpdated={updateTaskResponsable}
-        onActivityUpdated={updateTaskFields}
-        onActivityDeleted={deleteTaskFromBoard}
+        onResponsableUpdated={(actId, resp) => {
+          updateTaskResponsable(actId, resp)
+          refreshBoard()
+        }}
+        onActivityUpdated={(actId, campos) => {
+          updateTaskFields(actId, campos)
+          refreshBoard()
+        }}
+        onActivityDeleted={(actId) => {
+          deleteTaskFromBoard(actId)
+          refreshBoard()
+        }}
       />
     </div>
   )

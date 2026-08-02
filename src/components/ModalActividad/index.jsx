@@ -32,25 +32,25 @@ const priorityStyles = {
 }
 
 const estadoStyles = {
-  'Por Hacer': {
+  'Pendiente': {
     color: '#6366F1',
-    label: 'Por Hacer',
+    label: 'Pendiente',
   },
-  'En Progreso': {
+  'En proceso': {
     color: '#D69E2E',
-    label: 'En Progreso',
+    label: 'En proceso',
   },
-  'En Revisión': {
+  'En revisión': {
     color: '#E53E3E',
-    label: 'En Revisión',
+    label: 'En revisión',
   },
-  Completado: {
+  'Completada': {
     color: '#38A169',
-    label: 'Completado',
+    label: 'Completada',
   },
 }
 
-export default function NewActivityModal({ isOpen, onClose, onActivityCreated, proyectoId, initialColumn = 'Por Hacer' }) {
+export default function NewActivityModal({ isOpen, onClose, onActivityCreated, proyectoId, initialColumn = 'Pendiente' }) {
   const {
     responsables,
     selectedResponsable,

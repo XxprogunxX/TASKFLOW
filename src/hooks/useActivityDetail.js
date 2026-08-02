@@ -22,6 +22,8 @@ const priorityMap = {
 const estadoMap = {
   pendiente: 'Pendiente',
   en_progreso: 'En proceso',
+  en_proceso: 'En proceso',
+  en_revision: 'En revisión',
   en_revisión: 'En revisión',
   completada: 'Completada',
 }
@@ -29,7 +31,7 @@ const estadoMap = {
 const reverseEstadoMap = {
   'Pendiente': 'pendiente',
   'En proceso': 'en_progreso',
-  'En revisión': 'en_revisión',
+  'En revisión': 'en_revision',
   'Completada': 'completada',
 }
 

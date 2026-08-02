@@ -338,14 +338,24 @@ export default function MisTareasPage() {
 
                             {/* Right side: avatar + priority pill */}
                             <div className="flex shrink-0 items-center gap-3">
-                              {/* Responsable avatar */}
+                              {/* Responsable avatar + nombre */}
                               {task.responsableNombre && (
                                 <div
-                                  className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-xs"
-                                  style={{ backgroundColor: avatarBg }}
+                                  className="flex items-center gap-1.5 rounded-full bg-slate-100/80 pl-1 pr-2.5 py-0.5"
                                   title={task.responsableNombre}
                                 >
-                                  {getInitials(task.responsableNombre)}
+                                  <div
+                                    className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-xs shrink-0"
+                                    style={{ backgroundColor: avatarBg }}
+                                  >
+                                    {getInitials(task.responsableNombre)}
+                                  </div>
+                                  <span
+                                    className="text-xs font-semibold text-slate-700 max-w-[100px] truncate"
+                                    style={{ fontFamily: 'Nunito, sans-serif' }}
+                                  >
+                                    {task.responsableNombre}
+                                  </span>
                                 </div>
                               )}
 
