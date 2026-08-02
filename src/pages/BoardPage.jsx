@@ -42,11 +42,11 @@ export default function BoardPage() {
   const [searchParams] = useSearchParams()
   const targetProyectoId = searchParams.get('proyectoId') || null
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [initialColumnTitle, setInitialColumnTitle] = useState('Pendiente')
+  const [initialColumnTitle, setInitialColumnTitle] = useState('Por Hacer')
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
-  const handleOpenNewTaskModal = (columnTitle = 'Pendiente') => {
+  const handleOpenNewTaskModal = (columnTitle = 'Por Hacer') => {
     setInitialColumnTitle(columnTitle)
     setIsModalOpen(true)
   }
@@ -85,7 +85,7 @@ export default function BoardPage() {
               />
             </label>
             <button
-              onClick={() => handleOpenNewTaskModal('Pendiente')}
+              onClick={() => handleOpenNewTaskModal('Por Hacer')}
               className="inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition hover:opacity-95"
               style={{
                 background: 'linear-gradient(135deg, #6d5bd0 0%, #3a2f8f 100%)',

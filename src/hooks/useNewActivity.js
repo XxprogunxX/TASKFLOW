@@ -10,13 +10,13 @@ const priorityMap = {
 }
 
 const estadoMap = {
-  Pendiente: 'pendiente',
-  'En proceso': 'en_progreso',
+  'Por Hacer': 'pendiente',
+  'En Progreso': 'en_progreso',
   'En Revisión': 'en_revision',
-  Completada: 'completada',
+  'Completado': 'completada',
 }
 
-export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProyectoId, initialColumn = 'Pendiente' }) {
+export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProyectoId, initialColumn = 'Por Hacer' }) {
   const [responsables, setResponsables] = useState([])
   const [selectedResponsable, setSelectedResponsable] = useState(null)
   const [title, setTitle] = useState('')

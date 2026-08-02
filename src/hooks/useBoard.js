@@ -4,10 +4,10 @@ import { getProyectoForUsuario } from '../services/proyectoService'
 import { getAvatarColor, getInitials } from '../utils/projectUtils'
 
 const columnConfig = {
-  pendiente: { title: 'Pendiente', accent: '#6366F1' },
-  en_progreso: { title: 'En proceso', accent: '#D69E2E' },
+  pendiente: { title: 'Por Hacer', accent: '#6366F1' },
+  en_progreso: { title: 'En Progreso', accent: '#D69E2E' },
   en_revision: { title: 'En Revisión', accent: '#E53E3E' },
-  completada: { title: 'Completada', accent: '#38A169' },
+  completada: { title: 'Completado', accent: '#38A169' },
 }
 
 const priorityConfig = {
