@@ -35,11 +35,27 @@ export function usePanelAvance() {
             color: getAvatarColor(usr.nombre || authData.user.email || 'Usuario'),
           })
 
-          const proy = await getProyectoForUsuario(usr.id_usuario)
-          if (proy) {
-            proyectoId = proy.proyectoId
-            if (proy.proyecto) {
-              proyectoNombre = proy.proyecto.nombre
+          let proyectoActiveId = localStorage.getItem('taskflow_active_project_id') || null
+
+          if (proyectoActiveId) {
+            const { data: pData } = await supabase
+              .from('proyectos')
+              .select('id_proyecto, nombre')
+              .eq('id_proyecto', proyectoActiveId)
+              .maybeSingle()
+
+            if (pData) {
+              proyectoId = pData.id_proyecto
+              proyectoNombre = pData.nombre
+            }
+          }
+
+          if (!proyectoId) {
+            const proy = await getProyectoForUsuario(usr.id_usuario)
+            if (proy && proy.proyectoId) {
+              proyectoId = proy.proyectoId
+              proyectoNombre = proy.proyectoNombre || 'Proyecto'
+              localStorage.setItem('taskflow_active_project_id', String(proyectoId))
             }
           }
         }
@@ -73,31 +89,37 @@ export function usePanelAvance() {
         if (tasksError) throw tasksError
         if (tasksData) allTasks = tasksData
         
-        // Fetch all users in project for workload?
-        // Let's just extract from tasks or we can fetch project_members.
-        // If we just use tasks, members with 0 tasks might not show up.
-        // To be safe and show everyone, let's fetch users in the project.
-        const { data: miembrosData, error: miembrosError } = await supabase
-          .from('proyecto_miembros')
-          .select(`
-            usuario:usuarios(id_usuario, nombre)
-          `)
+        // Obtenemos el equipo del proyecto para listar a todos los miembros
+        const { data: pEquipoData } = await supabase
+          .from('proyectos')
+          .select('id_equipo')
           .eq('id_proyecto', proyectoId)
+          .maybeSingle()
 
-        if (!miembrosError && miembrosData) {
-          miembrosData.forEach(m => {
-            if (m.usuario) {
-              const name = m.usuario.nombre || 'Usuario Desconocido'
-              usersMap[m.usuario.id_usuario] = {
-                id: m.usuario.id_usuario,
-                name: name,
-                initials: getInitials(name),
-                color: getAvatarColor(name),
-                total: 0,
-                completed: 0
+        if (pEquipoData?.id_equipo) {
+          const { data: miembrosData } = await supabase
+            .from('usuarios_equipos')
+            .select(`
+              usuario:usuarios(id_usuario, nombre)
+            `)
+            .eq('id_equipo', pEquipoData.id_equipo)
+
+          if (miembrosData) {
+            miembrosData.forEach((m) => {
+              const uObj = Array.isArray(m.usuario) ? m.usuario[0] : m.usuario
+              if (uObj) {
+                const name = uObj.nombre || 'Usuario Desconocido'
+                usersMap[uObj.id_usuario] = {
+                  id: uObj.id_usuario,
+                  name: name,
+                  initials: getInitials(name),
+                  color: getAvatarColor(name),
+                  total: 0,
+                  completed: 0,
+                }
               }
-            }
-          })
+            })
+          }
         }
       }
 
