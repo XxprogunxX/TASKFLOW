@@ -32,21 +32,21 @@ const priorityStyles = {
 }
 
 const estadoStyles = {
-  'Por Hacer': {
+  Pendiente: {
     color: '#6366F1',
-    label: 'Por Hacer',
+    label: 'Pendiente',
   },
-  'En Progreso': {
+  'En proceso': {
     color: '#D69E2E',
-    label: 'En Progreso',
+    label: 'En proceso',
   },
   'En Revisión': {
     color: '#E53E3E',
     label: 'En Revisión',
   },
-  Completado: {
+  Completada: {
     color: '#38A169',
-    label: 'Completado',
+    label: 'Completada',
   },
 }
 
