@@ -2,8 +2,8 @@ import {
   AlertTriangle,
   Calendar,
   CheckCircle2,
+  Link,
   MessageSquare,
-  Paperclip,
   Plus,
   Search,
   UserPlus,
@@ -288,7 +288,7 @@ export default function BoardPage() {
                               {task.comments}
                             </span>
                             <span className="inline-flex items-center gap-1">
-                              <Paperclip className="h-3.5 w-3.5" style={{ color: '#6B6B80' }} />
+                              <Link className="h-3.5 w-3.5" style={{ color: '#6B6B80' }} />
                               {task.attachments}
                             </span>
                           </div>

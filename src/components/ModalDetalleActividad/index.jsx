@@ -207,15 +207,15 @@ export default function ModalDetalleActividad({
                   />
                 </div>
 
-                {/* Evidencias */}
+                {/* Enlace de entrega */}
                 <div>
-                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Evidencias</label>
+                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Enlace de entrega</label>
                   <div className="flex gap-2">
                     <input
                       type="url"
                       value={nuevaEvidenciaUrl}
                       onChange={(e) => setNuevaEvidenciaUrl(e.target.value)}
-                      placeholder="https://..."
+                      placeholder="ej. https://drive.google.com/..."
                       className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-400"
                     />
                     <button
@@ -224,7 +224,7 @@ export default function ModalDetalleActividad({
                       disabled={!nuevaEvidenciaUrl.trim()}
                       className="rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white transition disabled:opacity-40"
                     >
-                      Adjuntar
+                      Agregar enlace
                     </button>
                   </div>
                   {evidencias.length > 0 && (
@@ -237,7 +237,7 @@ export default function ModalDetalleActividad({
                           rel="noreferrer"
                           className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 text-xs text-purple-700 hover:underline"
                         >
-                          <Paperclip className="h-3 w-3" />
+                          <ExternalLink className="h-3.5 w-3.5" />
                           <span className="truncate">{ev.descripcion || ev.url_evidencia || ev.url}</span>
                         </a>
                       ))}

@@ -2,7 +2,7 @@ import {
   AlertTriangle,
   Calendar,
   CheckCircle2,
-  Paperclip,
+  Link,
   Plus,
   X,
   Zap,
@@ -68,11 +68,10 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
     tags,
     tagInput,
     setTagInput,
-    files,
+    deliveryUrl,
+    setDeliveryUrl,
     addTag,
     removeTag,
-    handleFileSelection,
-    removeFile,
     handleSubmit,
     isSubmitting,
     isLoadingResponsables,
@@ -314,29 +313,22 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
 
           <div>
             <label className="mb-2 block text-sm font-semibold" style={{ color: '#2D2D3F', fontFamily: 'Nunito, sans-serif' }}>
-              Evidencias
+              Enlace de entrega
             </label>
-            <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center transition hover:border-[#6D5BD0] hover:bg-purple-50/40">
-              <Paperclip className="h-8 w-8 text-[#6D5BD0]" />
-              <span className="mt-3 text-sm font-semibold text-[#2D2D3F]">Arrastra archivos aquí o haz clic</span>
-              <span className="mt-1 text-sm text-slate-500">PDF, imágenes, documentos — máx 10 MB</span>
-              <input type="file" multiple className="hidden" onChange={handleFileSelection} />
-            </label>
-            {files.length > 0 ? (
-              <div className="mt-3 space-y-2">
-                {files.map((file) => (
-                  <div key={file.name} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <Paperclip className="h-4 w-4 text-[#6D5BD0]" />
-                      <span className="text-sm text-slate-700">{file.name}</span>
-                    </div>
-                    <button type="button" onClick={() => removeFile(file.name)} className="text-sm text-[#E53E3E]">
-                      Quitar
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+            <div className="relative">
+              <Link className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="url"
+                value={deliveryUrl}
+                onChange={(event) => setDeliveryUrl(event.target.value)}
+                placeholder="ej. https://drive.google.com/..., https://github.com/..."
+                className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#6D5BD0]"
+                style={{ fontFamily: 'Nunito, sans-serif' }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-slate-500" style={{ fontFamily: 'Nunito, sans-serif' }}>
+              Ingresa la URL del enlace de entrega del trabajo (ej. Google Drive, Figma, GitHub, etc.)
+            </p>
           </div>
 
           <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-4">

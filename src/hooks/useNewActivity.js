@@ -26,7 +26,7 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
   const [estadoInicial, setEstadoInicial] = useState(initialColumn)
   const [tags, setTags] = useState([])
   const [tagInput, setTagInput] = useState('')
-  const [files, setFiles] = useState([])
+  const [deliveryUrl, setDeliveryUrl] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -40,7 +40,7 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     setEstadoInicial(initialColumn)
     setTags([])
     setTagInput('')
-    setFiles([])
+    setDeliveryUrl('')
     setSelectedResponsable(null)
     setError('')
     setSuccess('')
@@ -221,34 +221,20 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
 
       const actividadId = actividadData?.id_actividad
 
-      if (actividadId && files.length > 0) {
-        for (const file of files) {
-          const filePath = `${userData.user.id}/${actividadId}/${file.name}`
-          const { error: uploadError } = await supabase.storage.from('evidencias').upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false,
-          })
+      if (actividadId && deliveryUrl.trim()) {
+        let formattedUrl = deliveryUrl.trim()
+        if (!/^https?:\/\//i.test(formattedUrl)) {
+          formattedUrl = `https://${formattedUrl}`
+        }
 
-          if (uploadError) {
-            throw uploadError
-          }
+        const { error: evidenciaError } = await supabase.from('evidencias').insert({
+          id_actividad: actividadId,
+          url_evidencia: formattedUrl,
+          descripcion: 'Enlace de entrega',
+        })
 
-          const { data: publicUrlData } = supabase.storage.from('evidencias').getPublicUrl(filePath)
-          const publicUrl = publicUrlData?.publicUrl
-
-          if (!publicUrl) {
-            throw new Error('No se pudo obtener la URL pública del archivo.')
-          }
-
-          const { error: evidenciaError } = await supabase.from('evidencias').insert({
-            id_actividad: actividadId,
-            url_evidencia: publicUrl,
-            descripcion: file.name,
-          })
-
-          if (evidenciaError) {
-            throw evidenciaError
-          }
+        if (evidenciaError) {
+          throw evidenciaError
         }
       }
 
@@ -263,7 +249,7 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     } finally {
       setIsSubmitting(false)
     }
-  }, [description, dueDate, estadoInicial, files, onActivityCreated, priority, resetForm, selectedResponsable, tags, title])
+  }, [description, dueDate, estadoInicial, deliveryUrl, onActivityCreated, priority, resetForm, selectedResponsable, tags, title])
 
   return {
     responsables,
@@ -283,12 +269,10 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     setTags,
     tagInput,
     setTagInput,
-    files,
-    setFiles,
+    deliveryUrl,
+    setDeliveryUrl,
     addTag,
     removeTag,
-    handleFileSelection,
-    removeFile,
     handleSubmit,
     isSubmitting,
     isLoadingResponsables,

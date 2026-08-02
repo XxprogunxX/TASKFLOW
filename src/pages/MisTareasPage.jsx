@@ -1,4 +1,4 @@
-import { AlertTriangle, Calendar, Check, CheckCircle2, Eye, HelpCircle, MessageSquare, Paperclip, Zap } from 'lucide-react'
+import { AlertTriangle, Calendar, Check, CheckCircle2, Eye, HelpCircle, Link, MessageSquare, Zap } from 'lucide-react'
 import { useState } from 'react'
 import Header from '../components/Header'
 import ModalDetalleActividad from '../components/ModalDetalleActividad'
@@ -326,10 +326,10 @@ export default function MisTareasPage() {
                                   </span>
                                 )}
 
-                                {/* Evidencias */}
+                                {/* Evidencias / Enlaces */}
                                 {task.evidenciasCount > 0 && (
                                   <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
-                                    <Paperclip className="h-3.5 w-3.5" style={{ color: '#6366F1' }} />
+                                    <Link className="h-3.5 w-3.5" style={{ color: '#6366F1' }} />
                                     {task.evidenciasCount}
                                   </span>
                                 )}
