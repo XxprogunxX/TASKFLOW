@@ -4,9 +4,9 @@ import { getProyectoForUsuario } from '../services/proyectoService'
 import { getAvatarColor, getInitials } from '../utils/projectUtils'
 
 const columnConfig = {
-  pendiente: { title: 'Pendiente', accent: '#6366F1' },
+  pendiente: { title: 'Pendiente', accent: '#6C63FF' },
   en_progreso: { title: 'En proceso', accent: '#D69E2E' },
-  en_revision: { title: 'En revisión', accent: '#E53E3E' },
+  en_revision: { title: 'En revisión', accent: '#FF6B9D' },
   completada: { title: 'Completada', accent: '#38A169' },
 }
 
@@ -181,33 +181,9 @@ export function useBoard(selectedProyectoId = null) {
           proyectoId: null,
         }
 
-        let proyectoId = selectedProyectoId || localStorage.getItem('taskflow_active_project_id') || null
-        let proyectoNombre = 'Proyecto'
-
-        if (proyectoId) {
-          const { data: pData } = await supabase
-            .from('proyectos')
-            .select('id_proyecto, nombre')
-            .eq('id_proyecto', proyectoId)
-            .maybeSingle()
-
-          if (pData) {
-            proyectoId = pData.id_proyecto
-            proyectoNombre = pData.nombre
-          } else {
-            proyectoId = null
-          }
-        }
-
-        if (!proyectoId && perfil.idUsuario) {
-          const proyectoData = await getProyectoForUsuario(perfil.idUsuario)
-          proyectoId = proyectoData.proyectoId
-          proyectoNombre = proyectoData.proyectoNombre || proyectoNombre
-        }
-
-        if (proyectoId) {
-          localStorage.setItem('taskflow_active_project_id', String(proyectoId))
-        }
+        const activeProject = await getProyectoForUsuario(perfil.idUsuario, selectedProyectoId)
+        const proyectoId = activeProject.proyectoId
+        const proyectoNombre = activeProject.proyectoNombre || 'Proyecto'
 
         perfil.proyectoId = proyectoId
         perfil.proyectoNombre = proyectoNombre

@@ -1,13 +1,13 @@
 export const colorOptions = [
-  { id: 'purple', value: '#6D5BD0' },
-  { id: 'pink', value: '#EC4899' },
+  { id: 'purple', value: '#6C63FF' },
+  { id: 'pink', value: '#FF6B9D' },
   { id: 'green', value: '#38A169' },
   { id: 'gold', value: '#D69E2E' },
   { id: 'blue', value: '#3B82F6' },
   { id: 'red', value: '#E53E3E' },
 ]
 
-const avatarPalette = ['#6D5BD0', '#D877FF', '#D69E2E', '#38A169', '#F97316', '#0EA5E9', '#2D2D6B', '#EC4899']
+const avatarPalette = ['#6C63FF', '#FF6B9D', '#D69E2E', '#38A169', '#4A3A6B', '#2D2D3F', '#6B6B80', '#EC4899']
 
 export const getInitials = (name) => {
   const normalizedName = (name || '').trim()

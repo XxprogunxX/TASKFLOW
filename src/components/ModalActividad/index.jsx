@@ -33,7 +33,7 @@ const priorityStyles = {
 
 const estadoStyles = {
   'Pendiente': {
-    color: '#6366F1',
+    color: '#6C63FF',
     label: 'Pendiente',
   },
   'En proceso': {
@@ -41,7 +41,7 @@ const estadoStyles = {
     label: 'En proceso',
   },
   'En revisión': {
-    color: '#E53E3E',
+    color: '#FF6B9D',
     label: 'En revisión',
   },
   'Completada': {
@@ -209,6 +209,7 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
                 <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B80]" />
                 <input
                   type="date"
+                  min={new Date().toISOString().split('T')[0]}
                   value={dueDate}
                   onChange={(event) => setDueDate(event.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#6D5BD0]"
