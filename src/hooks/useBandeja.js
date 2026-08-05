@@ -37,20 +37,32 @@ export function useBandeja() {
       }
 
       // 1. Fetch user profile
-      const { data: usr } = await supabase
+      let { data: usr } = await supabase
         .from('usuarios')
         .select('*')
         .eq('auth_id', authData.user.id)
         .maybeSingle()
 
-      if (usr) {
-        setUsuario({
-          nombre: usr.nombre || authData.user.email || 'Usuario',
-          correo: usr.correo || authData.user.email || '',
-          iniciales: getInitials(usr.nombre || authData.user.email || 'Usuario'),
-          color: getAvatarColor(usr.nombre || authData.user.email || 'Usuario'),
-        })
+      if (!usr && authData.user.email) {
+        const { data: usrByEmail } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('correo', authData.user.email)
+          .maybeSingle()
+        usr = usrByEmail
       }
+
+      let nombre = usr?.nombre || authData.user.user_metadata?.nombre || authData.user.email || 'Usuario'
+      if (authData.user.email && usr?.nombre === authData.user.email.split('@')[0]) {
+        nombre = authData.user.user_metadata?.nombre || usr?.nombre || nombre
+      }
+
+      setUsuario({
+        nombre,
+        correo: usr?.correo || authData.user.email || '',
+        iniciales: getInitials(nombre),
+        color: getAvatarColor(nombre),
+      })
 
       // 2. Fetch invitaciones
       const email = authData.user.email

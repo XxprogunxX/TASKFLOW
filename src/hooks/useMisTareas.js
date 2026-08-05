@@ -42,23 +42,37 @@ export function useMisTareas() {
       let proyectoId = null
 
       if (authData?.user) {
-        const { data: usr } = await supabase
+        let { data: usr } = await supabase
           .from('usuarios')
           .select('*')
           .eq('auth_id', authData.user.id)
           .maybeSingle()
 
-        if (usr) {
-          currentUserId = usr.id_usuario
-          setUsuario({
-            idUsuario: usr.id_usuario,
-            nombre: usr.nombre || authData.user.email || 'Usuario',
-            correo: usr.correo || authData.user.email || '',
-            iniciales: getInitials(usr.nombre || authData.user.email || 'Usuario'),
-            color: getAvatarColor(usr.nombre || authData.user.email || 'Usuario'),
-          })
+        if (!usr && authData.user.email) {
+          const { data: usrByEmail } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('correo', authData.user.email)
+            .maybeSingle()
+          usr = usrByEmail
+        }
 
-          const { proyectoId: pid } = await getProyectoForUsuario(usr.id_usuario)
+        let nombre = usr?.nombre || authData.user.user_metadata?.nombre || authData.user.email || 'Usuario'
+        if (authData.user.email && usr?.nombre === authData.user.email.split('@')[0]) {
+          nombre = authData.user.user_metadata?.nombre || usr?.nombre || nombre
+        }
+
+        currentUserId = usr?.id_usuario || null
+        setUsuario({
+          idUsuario: usr?.id_usuario || null,
+          nombre,
+          correo: usr?.correo || authData.user.email || '',
+          iniciales: getInitials(nombre),
+          color: getAvatarColor(nombre),
+        })
+
+        if (currentUserId) {
+          const { proyectoId: pid } = await getProyectoForUsuario(currentUserId)
           proyectoId = pid
         }
       }
