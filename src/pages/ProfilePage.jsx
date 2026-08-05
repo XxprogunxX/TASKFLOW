@@ -20,16 +20,25 @@ export default function ProfilePage() {
 
         setCorreo(authData.user.email || '')
 
-        const { data: usr } = await supabase
+        let { data: usr } = await supabase
           .from('usuarios')
-          .select('nombre, rol')
+          .select('nombre, rol, id_usuario')
           .eq('auth_id', authData.user.id)
           .maybeSingle()
 
+        if (!usr && authData.user.email) {
+          const { data: usrByEmail } = await supabase
+            .from('usuarios')
+            .select('nombre, rol, id_usuario')
+            .eq('correo', authData.user.email)
+            .maybeSingle()
+          usr = usrByEmail
+        }
+
         if (usr) {
-          // Si el nombre en la BD está vacío o es la matrícula, pero tenemos el nombre real en metadata, usamos ese
-          const hasMatriculaAsName = authData.user.email && usr.nombre === authData.user.email.split('@')[0]
-          if (!usr.nombre || hasMatriculaAsName) {
+          // Si el nombre en la BD está vacío o es la matrícula o solo un nombre corto, pero tenemos el nombre completo en metadata, usamos ese
+          const isEmailPrefix = authData.user.email && usr.nombre === authData.user.email.split('@')[0]
+          if (!usr.nombre || isEmailPrefix) {
             setNombre(authData.user.user_metadata?.nombre || usr.nombre || '')
           } else {
             setNombre(usr.nombre)
@@ -58,11 +67,11 @@ export default function ProfilePage() {
       const { data: authData } = await supabase.auth.getUser()
       if (!authData?.user) throw new Error('No hay usuario autenticado')
 
-      // 1. Actualizar tabla de usuarios en Supabase
+      // 1. Actualizar tabla de usuarios en Supabase (por auth_id o por correo)
       const { error: updateError } = await supabase
         .from('usuarios')
-        .update({ nombre, rol })
-        .eq('auth_id', authData.user.id)
+        .update({ nombre, rol, auth_id: authData.user.id })
+        .or(`auth_id.eq.${authData.user.id},correo.eq.${authData.user.email}`)
 
       if (updateError) {
         console.warn('No se pudo actualizar en la tabla usuarios:', updateError)

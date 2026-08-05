@@ -45,12 +45,21 @@ export default function Header({
         const { data: authData } = await supabase.auth.getUser()
         if (!authData?.user) return
 
-        // 1. Fetch user profile
-        const { data: usr } = await supabase
+        // 1. Fetch usuario profile name
+        let { data: usr } = await supabase
           .from('usuarios')
           .select('nombre, correo, avatar_url, id_usuario')
           .eq('auth_id', authData.user.id)
           .maybeSingle()
+
+        if (!usr && authData.user.email) {
+          const { data: usrByEmail } = await supabase
+            .from('usuarios')
+            .select('nombre, correo, avatar_url, id_usuario')
+            .eq('correo', authData.user.email)
+            .maybeSingle()
+          usr = usrByEmail
+        }
 
         let name = usr?.nombre || authData.user.user_metadata?.nombre || authData.user.email || 'Usuario'
         if (authData.user.email && usr?.nombre === authData.user.email.split('@')[0]) {
