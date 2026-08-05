@@ -137,7 +137,7 @@ export default function ModalDetalleActividad({
                     <select
                       value={estado}
                       onChange={(e) => setEstado(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-purple-400"
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-[#6C63FF]"
                     >
                       <option value="Pendiente">Pendiente</option>
                       <option value="En proceso">En proceso</option>
@@ -151,7 +151,7 @@ export default function ModalDetalleActividad({
                     <select
                       value={prioridad}
                       onChange={(e) => setPrioridad(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-purple-400"
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-[#6C63FF]"
                     >
                       <option value="Alta">Alta</option>
                       <option value="Media">Media</option>
@@ -167,7 +167,7 @@ export default function ModalDetalleActividad({
                     type="date"
                     value={fechaLimite}
                     onChange={(e) => setFechaLimite(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none focus:border-purple-400"
+                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none focus:border-[#6C63FF]"
                   />
                 </div>
 
@@ -183,7 +183,7 @@ export default function ModalDetalleActividad({
                           type="button"
                           onClick={() => setSelectedResponsableId(String(m.id))}
                           className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white transition ${
-                            isSelected ? 'ring-2 ring-purple-600 ring-offset-2' : ''
+                            isSelected ? 'ring-2 ring-[#6C63FF] ring-offset-2' : ''
                           }`}
                           style={{ backgroundColor: getAvatarColor(idx) }}
                           title={m.nombre}
@@ -203,7 +203,7 @@ export default function ModalDetalleActividad({
                     value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
                     placeholder="Detalles sobre esta actividad..."
-                    className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-purple-400"
+                    className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-[#6C63FF]"
                   />
                 </div>
 
@@ -216,13 +216,13 @@ export default function ModalDetalleActividad({
                       value={nuevaEvidenciaUrl}
                       onChange={(e) => setNuevaEvidenciaUrl(e.target.value)}
                       placeholder="ej. https://drive.google.com/..."
-                      className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-400"
+                      className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#6C63FF]"
                     />
                     <button
                       type="button"
                       onClick={handleAddEvidencia}
                       disabled={!nuevaEvidenciaUrl.trim()}
-                      className="rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white transition disabled:opacity-40"
+                      className="rounded-xl bg-[#6C63FF] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer"
                     >
                       Agregar enlace
                     </button>
@@ -266,7 +266,7 @@ export default function ModalDetalleActividad({
                       type="button"
                       onClick={handleGuardarCambios}
                       disabled={isSaving}
-                      className="rounded-xl bg-purple-600 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-purple-700"
+                      className="rounded-xl bg-[#6C63FF] px-5 py-2 text-xs font-bold text-white shadow-md transition hover:bg-[#5A52E0] disabled:opacity-50 cursor-pointer"
                     >
                       {isSaving ? 'Guardando...' : 'Guardar cambios'}
                     </button>
@@ -309,13 +309,13 @@ export default function ModalDetalleActividad({
                     onChange={(e) => setNuevoComentario(e.target.value)}
                     placeholder="Escribe una nota..."
                     onKeyDown={(e) => e.key === 'Enter' && nuevoComentario.trim() && handleAddComentario()}
-                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-purple-400"
+                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#6C63FF]"
                   />
                   <button
                     type="button"
                     onClick={handleAddComentario}
                     disabled={!nuevoComentario.trim()}
-                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-600 text-white disabled:opacity-40"
+                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#6C63FF] text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer"
                   >
                     <Send className="h-3.5 w-3.5" />
                   </button>
