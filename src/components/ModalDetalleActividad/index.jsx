@@ -91,10 +91,10 @@ export default function ModalDetalleActividad({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-2 sm:p-4 backdrop-blur-xs"
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
-        <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-100 px-8 py-5">
             <input
@@ -119,9 +119,9 @@ export default function ModalDetalleActividad({
           ) : !actividad ? (
             <div className="p-8 text-center text-sm text-slate-500">{error || 'No se encontró la actividad.'}</div>
           ) : (
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-col md:flex-row flex-1 overflow-y-auto">
               {/* Columna Izquierda */}
-              <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              <div className="w-full md:flex-1 p-5 sm:p-8 space-y-6">
                 {error && <div className="rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-600">{error}</div>}
                 {success && (
                   <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 border border-emerald-200">
@@ -275,7 +275,7 @@ export default function ModalDetalleActividad({
               </div>
 
               {/* Columna Derecha (Notas / Comentarios) */}
-              <div className="flex w-80 flex-col border-l border-slate-100 bg-slate-50/50 p-6">
+              <div className="flex w-full md:w-80 flex-shrink-0 flex-col border-t md:border-t-0 md:border-l border-slate-100 bg-slate-50/50 p-5 sm:p-6">
                 <div className="mb-4 flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-700">Notas ({comentarios.length})</span>
                 </div>

@@ -35,28 +35,10 @@ export function usePanelAvance() {
             color: getAvatarColor(usr.nombre || authData.user.email || 'Usuario'),
           })
 
-          let proyectoActiveId = localStorage.getItem('taskflow_active_project_id') || null
-
-          if (proyectoActiveId) {
-            const { data: pData } = await supabase
-              .from('proyectos')
-              .select('id_proyecto, nombre')
-              .eq('id_proyecto', proyectoActiveId)
-              .maybeSingle()
-
-            if (pData) {
-              proyectoId = pData.id_proyecto
-              proyectoNombre = pData.nombre
-            }
-          }
-
-          if (!proyectoId) {
-            const proy = await getProyectoForUsuario(usr.id_usuario)
-            if (proy && proy.proyectoId) {
-              proyectoId = proy.proyectoId
-              proyectoNombre = proy.proyectoNombre || 'Proyecto'
-              localStorage.setItem('taskflow_active_project_id', String(proyectoId))
-            }
+          const proy = await getProyectoForUsuario(usr.id_usuario)
+          if (proy && proy.proyectoId) {
+            proyectoId = proy.proyectoId
+            proyectoNombre = proy.proyectoNombre || 'Proyecto'
           }
         }
       }

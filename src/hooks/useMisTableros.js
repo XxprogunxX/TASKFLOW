@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { createProyecto, fetchProyectosUsuario } from '../services/proyectoService'
+import { createProyecto, deleteProyecto, fetchProyectosUsuario } from '../services/proyectoService'
 import { colorOptions } from '../utils/projectUtils'
 
 export function useMisTableros() {
@@ -44,12 +44,30 @@ export function useMisTableros() {
     }
   }, [])
 
+  const eliminarProyecto = useCallback(async (idProyecto) => {
+    setError(null)
+    try {
+      await deleteProyecto(idProyecto)
+      setProyectos((current) => current.filter((p) => p.id !== idProyecto))
+      if (typeof window !== 'undefined') {
+        if (localStorage.getItem('taskflow_active_project_id') === String(idProyecto)) {
+          localStorage.removeItem('taskflow_active_project_id')
+        }
+      }
+    } catch (err) {
+      const message = err.message || 'No se pudo eliminar el proyecto.'
+      setError(message)
+      throw new Error(message)
+    }
+  }, [])
+
   return {
     proyectos,
     isLoading,
     error,
     isCreating,
     crearProyecto,
+    eliminarProyecto,
     recargarProyectos: cargarProyectos,
     colorOptions,
   }

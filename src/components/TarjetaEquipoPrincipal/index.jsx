@@ -92,6 +92,23 @@ export default function TarjetaEquipoPrincipal({ equipo, integrantes, proyecto }
         ))}
       </div>
 
+      {/* Footer con conteo y botón */}
+      <div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
+        <span className="text-sm font-medium text-[#6B6B80]">
+          {integrantes.length} integrante{integrantes.length !== 1 ? 's' : ''}
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            // TODO: Navigate to team detail page if it exists
+            console.log('Navegar al equipo', equipo.id_equipo)
+          }}
+          className="rounded-full bg-[#6C63FF] px-5 py-2 text-sm font-bold text-white transition hover:bg-[#5A52E0] cursor-pointer"
+        >
+          Ver equipo
+        </button>
+      </div>
+
       <ModalInvitarMiembro 
         isOpen={isInviteModalOpen} 
         onClose={() => setIsInviteModalOpen(false)} 

@@ -189,7 +189,7 @@ export default function PanelAvancePage() {
           {/* Donut Chart */}
           <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
             <h3 className="mb-6 font-bold text-[#2D2342]">Distribución por Prioridad</h3>
-            <div className="flex h-64 items-center justify-center gap-12">
+            <div className="flex flex-col sm:flex-row h-auto sm:h-64 items-center justify-center gap-6 sm:gap-12">
               <div className="relative h-48 w-48">
                 <Doughnut data={donutData} options={donutOptions} />
               </div>

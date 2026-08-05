@@ -90,7 +90,7 @@ async function getMiembrosPorEquipo(idEquipo) {
   })
 }
 
-export async function getProyectoForUsuario(idUsuario) {
+export async function getProyectoForUsuario(idUsuario, preferredProyectoId = null) {
   if (!idUsuario) {
     return { proyectoId: null, proyectoNombre: null }
   }
@@ -99,6 +99,27 @@ export async function getProyectoForUsuario(idUsuario) {
 
   if (equipoIds.length === 0) {
     return { proyectoId: null, proyectoNombre: null }
+  }
+
+  const targetId = preferredProyectoId || (typeof window !== 'undefined' ? localStorage.getItem('taskflow_active_project_id') : null)
+
+  if (targetId) {
+    const { data: preferido } = await supabase
+      .from('proyectos')
+      .select('id_proyecto, nombre')
+      .in('id_equipo', equipoIds)
+      .eq('id_proyecto', targetId)
+      .maybeSingle()
+
+    if (preferido) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('taskflow_active_project_id', String(preferido.id_proyecto))
+      }
+      return {
+        proyectoId: preferido.id_proyecto,
+        proyectoNombre: preferido.nombre || 'Proyecto',
+      }
+    }
   }
 
   const { data: proyecto, error: proyectoError } = await supabase
@@ -111,6 +132,10 @@ export async function getProyectoForUsuario(idUsuario) {
 
   if (proyectoError || !proyecto) {
     return { proyectoId: null, proyectoNombre: null }
+  }
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('taskflow_active_project_id', String(proyecto.id_proyecto))
   }
 
   return {
@@ -209,4 +234,35 @@ export async function createProyecto({ nombre, descripcion, color }) {
   }
 
   return mapProyectoConMetricas(proyecto, [], [perfil], 0, color)
+}
+
+/** Elimina un proyecto por su ID */
+export async function deleteProyecto(idProyecto) {
+  if (!idProyecto) throw new Error('ID de proyecto no válido.')
+
+  // Obtener todas las actividades del proyecto
+  const { data: acts } = await supabase
+    .from('actividades')
+    .select('id_actividad')
+    .eq('id_proyecto', idProyecto)
+
+  if (acts && acts.length > 0) {
+    const idsAct = acts.map((a) => a.id_actividad)
+    // Eliminar dependencias de las actividades
+    await supabase.from('comentarios').delete().in('id_actividad', idsAct)
+    await supabase.from('evidencias').delete().in('id_actividad', idsAct)
+  }
+
+  // Eliminar actividades asociadas al proyecto
+  await supabase.from('actividades').delete().eq('id_proyecto', idProyecto)
+
+  // Finalmente eliminar el proyecto
+  const { error } = await supabase
+    .from('proyectos')
+    .delete()
+    .eq('id_proyecto', idProyecto)
+
+  if (error) {
+    throw error
+  }
 }

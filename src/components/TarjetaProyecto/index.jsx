@@ -16,10 +16,9 @@ export default function TarjetaProyecto({ proyecto }) {
   }
 
   return (
-    <button
-      type="button"
+    <div
       onClick={handleClick}
-      className="w-full rounded-2xl border border-[#EEF0F5] bg-white p-6 text-left shadow-sm transition hover:shadow-md"
+      className="group relative w-full rounded-2xl border border-[#EEF0F5] bg-white p-6 text-left shadow-sm transition hover:shadow-md cursor-pointer"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4">
@@ -41,16 +40,18 @@ export default function TarjetaProyecto({ proyecto }) {
             </p>
           </div>
         </div>
-        <div className="shrink-0 text-right">
-          <p
-            className="text-xl font-extrabold"
-            style={{ color: progressStyle.color, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-          >
-            {proyecto.progreso}%
-          </p>
-          <p className="text-xs" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-            completado
-          </p>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-right">
+            <p
+              className="text-xl font-extrabold"
+              style={{ color: progressStyle.color, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              {proyecto.progreso}%
+            </p>
+            <p className="text-xs" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
+              completado
+            </p>
+          </div>
         </div>
       </div>
 
@@ -87,6 +88,6 @@ export default function TarjetaProyecto({ proyecto }) {
           ) : null}
         </div>
       </div>
-    </button>
+    </div>
   )
 }

@@ -161,12 +161,12 @@ export default function BoardPage() {
         ) : null}
 
         {!isLoading && !error && !usuario?.sinProyectos ? (
-          <section className="grid gap-6 xl:grid-cols-4">
+          <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {columnasFiltradas.map((column) => (
               <div
                 key={column.title}
                 className="rounded-3xl p-5 shadow-sm"
-                style={{ backgroundColor: '#FFF0F6' }}
+                style={{ backgroundColor: '#F8F0FF' }}
               >
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { HelpCircle, Plus } from 'lucide-react'
+import { AlertTriangle, HelpCircle, Plus } from 'lucide-react'
 import { useState } from 'react'
 import Header from '../components/Header'
 import ModalNuevoProyecto from '../components/ModalNuevoProyecto'
@@ -42,6 +42,8 @@ export default function MisTablerosPage() {
     }
   }
 
+
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FDF2F2', color: '#2D2D3F' }}>
       <Header active="Mis Tableros" />
@@ -63,7 +65,7 @@ export default function MisTablerosPage() {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold shadow-sm transition hover:opacity-95"
+            className="inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold shadow-sm transition hover:opacity-95 cursor-pointer"
             style={{
               background: 'linear-gradient(135deg, #6d5bd0 0%, #3a2f8f 100%)',
               color: '#FFFFFF',
@@ -99,7 +101,10 @@ export default function MisTablerosPage() {
         {!isLoading && !error && proyectos.length > 0 ? (
           <section className="grid gap-6 md:grid-cols-2">
             {proyectos.map((proyecto) => (
-              <TarjetaProyecto key={proyecto.id} proyecto={proyecto} />
+              <TarjetaProyecto
+                key={proyecto.id}
+                proyecto={proyecto}
+              />
             ))}
           </section>
         ) : null}

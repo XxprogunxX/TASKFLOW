@@ -2,8 +2,21 @@
 @import "tailwindcss";
 
 :root {
-  color: #1f2937;
-  background: #fff;
+  --bg-general: #FFF5F7;
+  --bg-tarjetas: #FFFFFF;
+  --bg-columnas: #F8F0FF;
+  --color-border: #E2E8F0;
+  --color-primary: #6C63FF;
+  --color-secondary: #FF6B9D;
+  --color-title: #4A3A6B;
+  --color-text: #2D2D3F;
+  --color-text-secondary: #6B6B80;
+  --color-prio-alta: #E53E3E;
+  --color-prio-media: #D69E2E;
+  --color-prio-baja: #38A169;
+
+  color: #2D2D3F;
+  background-color: #FFF5F7;
   font-family: 'Nunito', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -22,8 +35,18 @@ body,
 
 body {
   margin: 0;
-  background: #fff;
+  background-color: #FFF5F7;
+  color: #2D2D3F;
   font-family: 'Nunito', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #4A3A6B;
+}
+
+code, kbd, samp, pre {
+  font-family: 'DM Mono', monospace;
 }
 
 button,

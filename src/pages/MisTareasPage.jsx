@@ -67,7 +67,7 @@ const priorityConfig = {
 }
 
 const statusStyles = {
-  pendiente:   { bg: '#EEF2FF', text: '#4F46E5', dot: '#6366F1', label: 'Pendiente' },
+  pendiente:   { bg: '#F8F0FF', text: '#4A3A6B', dot: '#6C63FF', label: 'Pendiente' },
   en_progreso: { bg: '#FEF3C7', text: '#D97706', dot: '#F59E0B', label: 'En proceso' },
   en_revisión: { bg: '#FCE7F3', text: '#DB2777', dot: '#EC4899', label: 'En revisión' },
   completada:  { bg: '#DCFCE7', text: '#16A34A', dot: '#22C55E', label: 'Completada' },
@@ -251,93 +251,95 @@ export default function MisTareasPage() {
                           />
 
                           {/* Content */}
-                          <div className="flex flex-1 items-center gap-4 px-5 py-4 pl-6">
-                            {/* Checkbox */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleTaskStatus(task.id)
-                              }}
-                              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all"
-                              style={{
-                                borderColor: isCompleted ? cfg.checkCompletedBg : cfg.checkBorder,
-                                backgroundColor: isCompleted ? cfg.checkCompletedBg : 'transparent',
-                                color: '#fff',
-                              }}
-                              title={isCompleted ? 'Desmarcar' : 'Completar'}
-                            >
-                              {isCompleted && <Check className="h-3.5 w-3.5 stroke-[3]" />}
-                            </button>
-
-                            {/* Title + meta */}
-                            <div className="min-w-0 flex-1">
-                              <p
-                                className="truncate text-sm font-bold transition-all"
-                                style={{
-                                  color: isCompleted ? '#9CA3AF' : '#2D2342',
-                                  fontFamily: 'Plus Jakarta Sans, sans-serif',
-                                  textDecoration: isCompleted ? 'line-through' : 'none',
+                          <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:px-5 sm:py-4 pl-5 sm:pl-6">
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                              {/* Checkbox */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  toggleTaskStatus(task.id)
                                 }}
+                                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all mt-0.5"
+                                style={{
+                                  borderColor: isCompleted ? cfg.checkCompletedBg : cfg.checkBorder,
+                                  backgroundColor: isCompleted ? cfg.checkCompletedBg : 'transparent',
+                                  color: '#fff',
+                                }}
+                                title={isCompleted ? 'Desmarcar' : 'Completar'}
                               >
-                                {task.title}
-                              </p>
+                                {isCompleted && <Check className="h-3.5 w-3.5 stroke-[3]" />}
+                              </button>
 
-                              <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                                {/* Due date badge */}
-                                {task.dueBadge && (
-                                  <span
-                                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold"
-                                    style={{
-                                      fontFamily: 'Nunito, sans-serif',
-                                      ...(task.dueBadge.variant === 'danger'
-                                        ? { background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }
-                                        : task.dueBadge.variant === 'warning'
-                                        ? { background: '#FFFBEB', color: '#B45309', border: '1px solid #FCD34D' }
-                                        : { background: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB' }),
-                                    }}
-                                  >
-                                    <Calendar className="h-3 w-3 opacity-70" />
-                                    {task.dueBadge.text}
-                                  </span>
-                                )}
-
-                                {/* Status badge */}
-                                <span
-                                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                              {/* Title + meta */}
+                              <div className="min-w-0 flex-1">
+                                <p
+                                  className="text-sm font-bold transition-all break-words"
                                   style={{
-                                    backgroundColor: stStyle.bg,
-                                    color: stStyle.text,
-                                    fontFamily: 'Nunito, sans-serif',
+                                    color: isCompleted ? '#9CA3AF' : '#2D2342',
+                                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                                    textDecoration: isCompleted ? 'line-through' : 'none',
                                   }}
                                 >
+                                  {task.title}
+                                </p>
+
+                                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                                  {/* Due date badge */}
+                                  {task.dueBadge && (
+                                    <span
+                                      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold"
+                                      style={{
+                                        fontFamily: 'Nunito, sans-serif',
+                                        ...(task.dueBadge.variant === 'danger'
+                                          ? { background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }
+                                          : task.dueBadge.variant === 'warning'
+                                          ? { background: '#FFFBEB', color: '#B45309', border: '1px solid #FCD34D' }
+                                          : { background: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB' }),
+                                      }}
+                                    >
+                                      <Calendar className="h-3 w-3 opacity-70" />
+                                      {task.dueBadge.text}
+                                    </span>
+                                  )}
+
+                                  {/* Status badge */}
                                   <span
-                                    className="h-1.5 w-1.5 rounded-full"
-                                    style={{ backgroundColor: stStyle.dot }}
-                                  />
-                                  {stStyle.label}
-                                </span>
-
-                                {/* Comentarios */}
-                                {task.comentariosCount > 0 && (
-                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
-                                    <MessageSquare className="h-3.5 w-3.5" style={{ color: '#8B5CF6' }} />
-                                    {task.comentariosCount}
+                                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                                    style={{
+                                      backgroundColor: stStyle.bg,
+                                      color: stStyle.text,
+                                      fontFamily: 'Nunito, sans-serif',
+                                    }}
+                                  >
+                                    <span
+                                      className="h-1.5 w-1.5 rounded-full"
+                                      style={{ backgroundColor: stStyle.dot }}
+                                    />
+                                    {stStyle.label}
                                   </span>
-                                )}
 
-                                {/* Evidencias / Enlaces */}
-                                {task.evidenciasCount > 0 && (
-                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
-                                    <Link className="h-3.5 w-3.5" style={{ color: '#6366F1' }} />
-                                    {task.evidenciasCount}
-                                  </span>
-                                )}
+                                  {/* Comentarios */}
+                                  {task.comentariosCount > 0 && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
+                                      <MessageSquare className="h-3.5 w-3.5" style={{ color: '#8B5CF6' }} />
+                                      {task.comentariosCount}
+                                    </span>
+                                  )}
+
+                                  {/* Evidencias / Enlaces */}
+                                  {task.evidenciasCount > 0 && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
+                                      <Link className="h-3.5 w-3.5" style={{ color: '#6C63FF' }} />
+                                      {task.evidenciasCount}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
 
                             {/* Right side: avatar + priority pill */}
-                            <div className="flex shrink-0 items-center gap-3">
+                            <div className="flex flex-wrap shrink-0 items-center gap-2 sm:gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100/80">
                               {/* Responsable avatar + nombre */}
                               {task.responsableNombre && (
                                 <div
