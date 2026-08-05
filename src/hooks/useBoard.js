@@ -161,22 +161,36 @@ export function useBoard(selectedProyectoId = null) {
           throw new Error('No se pudo autenticar al usuario.')
         }
 
-        const { data: usuarioData, error: usuarioError } = await supabase
+        let { data: usuarioData, error: usuarioError } = await supabase
           .from('usuarios')
           .select('*')
           .eq('auth_id', authData.user.id)
           .maybeSingle()
 
+        if (!usuarioData && authData.user.email) {
+          const { data: usrByEmail } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('correo', authData.user.email)
+            .maybeSingle()
+          usuarioData = usrByEmail
+        }
+
         if (usuarioError) {
           throw usuarioError
         }
 
+        let nombre = usuarioData?.nombre || authData.user.user_metadata?.nombre || authData.user.email || 'Usuario'
+        if (authData.user.email && usuarioData?.nombre === authData.user.email.split('@')[0]) {
+          nombre = authData.user.user_metadata?.nombre || usuarioData?.nombre || nombre
+        }
+
         const perfil = {
           idUsuario: usuarioData?.id_usuario ?? null,
-          nombre: usuarioData?.nombre || authData.user.email || 'Usuario',
+          nombre,
           correo: usuarioData?.correo || authData.user.email || '',
-          iniciales: getInitials(usuarioData?.nombre || authData.user.email || 'Usuario'),
-          color: getAvatarColor(usuarioData?.nombre || authData.user.email || 'Usuario'),
+          iniciales: getInitials(nombre),
+          color: getAvatarColor(nombre),
           sinProyectos: false,
           proyectoId: null,
         }
