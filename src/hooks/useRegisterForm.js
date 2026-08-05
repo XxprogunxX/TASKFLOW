@@ -81,6 +81,18 @@ export function useRegisterForm(onRegisterSuccess = () => console.log('Registro 
         return
       }
 
+      // Crear o actualizar la entrada en la tabla usuarios para que esté listo desde el segundo 1
+      try {
+        await supabase.from('usuarios').upsert({
+          auth_id: data.user.id,
+          nombre: values.fullName.trim(),
+          correo: values.email,
+          rol: 'Miembro',
+        })
+      } catch (err) {
+        console.warn('No se pudo pre-crear el usuario en la tabla usuarios:', err)
+      }
+
       await supabase.auth.signOut()
 
       onRegisterSuccess({ email: values.email, fullName: values.fullName.trim() })
