@@ -36,9 +36,10 @@ const priorityStyles = {
   },
 }
 
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 
 export default function BoardPage() {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const targetProyectoId = searchParams.get('proyectoId') || null
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -164,8 +165,8 @@ export default function BoardPage() {
             <p className="text-base font-semibold text-[#4A3A6B]">Aún no tienes proyectos.</p>
             <p className="mt-2 text-sm text-[#6B6B80]">Únete a un equipo o crea uno en "Mis Tableros" para empezar.</p>
             <button
-              onClick={() => navigate('/proyectos')}
-              className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[#6D5BD0] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5a4bb8]"
+              onClick={() => navigate('/mis-tableros')}
+              className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[#6D5BD0] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5a4bb8] cursor-pointer"
             >
               Ir a Mis Tableros
             </button>
