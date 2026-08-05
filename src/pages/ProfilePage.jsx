@@ -64,9 +64,20 @@ export default function ProfilePage() {
         .update({ nombre, rol })
         .eq('auth_id', authData.user.id)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        console.warn('No se pudo actualizar en la tabla usuarios:', updateError)
+      }
 
-      // 2. Limpiar cache local del avatar para que el Header lo refresque inmediatamente
+      // 2. Actualizar metadata del usuario en Supabase Auth
+      const { error: authUpdateError } = await supabase.auth.updateUser({
+        data: { nombre }
+      })
+
+      if (authUpdateError && updateError) {
+        throw updateError || authUpdateError
+      }
+
+      // 3. Limpiar cache local del avatar para que el Header lo refresque inmediatamente
       localStorage.removeItem('taskflow_user_avatar')
 
       setMessage({
@@ -77,7 +88,7 @@ export default function ProfilePage() {
       console.error('Error actualizando perfil:', err)
       setMessage({
         type: 'error',
-        text: 'Ocurrió un error al actualizar el perfil. Intenta de nuevo.',
+        text: err.message || 'Ocurrió un error al actualizar el perfil. Intenta de nuevo.',
       })
     } finally {
       setSaving(false)
