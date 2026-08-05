@@ -52,7 +52,11 @@ export default function Header({
           .eq('auth_id', authData.user.id)
           .maybeSingle()
 
-        const name = usr?.nombre || authData.user.email || 'Usuario'
+        let name = usr?.nombre || authData.user.user_metadata?.nombre || authData.user.email || 'Usuario'
+        if (authData.user.email && usr?.nombre === authData.user.email.split('@')[0]) {
+          name = authData.user.user_metadata?.nombre || usr?.nombre
+        }
+        
         const calcInitials = getInitials(name)
         const calcColor = getAvatarColor(name)
 

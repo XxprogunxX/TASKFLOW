@@ -27,10 +27,16 @@ export default function ProfilePage() {
           .maybeSingle()
 
         if (usr) {
-          setNombre(usr.nombre || '')
+          // Si el nombre en la BD está vacío o es la matrícula, pero tenemos el nombre real en metadata, usamos ese
+          const hasMatriculaAsName = authData.user.email && usr.nombre === authData.user.email.split('@')[0]
+          if (!usr.nombre || hasMatriculaAsName) {
+            setNombre(authData.user.user_metadata?.nombre || usr.nombre || '')
+          } else {
+            setNombre(usr.nombre)
+          }
           setRol(usr.rol || 'Miembro')
         } else {
-          setNombre(authData.user.email ? authData.user.email.split('@')[0] : '')
+          setNombre(authData.user.user_metadata?.nombre || (authData.user.email ? authData.user.email.split('@')[0] : ''))
           setRol('Miembro')
         }
       } catch (err) {
