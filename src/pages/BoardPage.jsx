@@ -116,12 +116,18 @@ export default function BoardPage() {
             </label>
             <button
               onClick={() => handleOpenNewTaskModal('Pendiente')}
-              className="inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition hover:opacity-95"
+              disabled={usuario?.sinProyectos || isLoading}
+              className={`inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition ${
+                usuario?.sinProyectos || isLoading
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:opacity-95 cursor-pointer'
+              }`}
               style={{
                 background: 'linear-gradient(135deg, #6d5bd0 0%, #3a2f8f 100%)',
                 color: '#FFFFFF',
                 fontFamily: 'Nunito, sans-serif',
               }}
+              title={usuario?.sinProyectos ? 'Crea un proyecto primero para poder añadir tareas' : 'Nueva tarea'}
             >
               <Plus className="mr-2 h-4 w-4" />
               Nueva tarea
@@ -130,8 +136,8 @@ export default function BoardPage() {
         </div>
 
         {isLoading ? (
-          <section className="grid gap-6 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, index) => (
+          <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((index) => (
               <div key={index} className="rounded-3xl p-5 shadow-sm" style={{ backgroundColor: '#FFF0F6' }}>
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div className="h-3 w-24 animate-pulse rounded-full bg-slate-200" />
@@ -156,7 +162,13 @@ export default function BoardPage() {
         {!isLoading && !error && usuario?.sinProyectos ? (
           <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
             <p className="text-base font-semibold text-[#4A3A6B]">Aún no tienes proyectos.</p>
-            <p className="mt-2 text-sm text-[#6B6B80]">Únete a un equipo o crea uno para empezar.</p>
+            <p className="mt-2 text-sm text-[#6B6B80]">Únete a un equipo o crea uno en "Mis Tableros" para empezar.</p>
+            <button
+              onClick={() => navigate('/proyectos')}
+              className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[#6D5BD0] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5a4bb8]"
+            >
+              Ir a Mis Tableros
+            </button>
           </div>
         ) : null}
 
