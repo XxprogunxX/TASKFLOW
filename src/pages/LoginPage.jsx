@@ -212,11 +212,6 @@ export default function LoginPage({ onLoginSuccess = () => console.log('Login ex
                 Regístrate aquí
               </Link>
             </p>
-
-            {/* Caja de información demo igual que Figma */}
-            <div className="mt-8 rounded-2xl border border-dashed border-[#E5E0FA] bg-white/70 py-3 px-4 text-center text-xs text-[#8E8A9F]">
-              Demo: cualquier correo y contraseña funcionan
-            </div>
           </div>
         </section>
       </main>
