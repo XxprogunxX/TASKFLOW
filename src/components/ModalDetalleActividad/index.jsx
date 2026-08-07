@@ -137,7 +137,7 @@ export default function ModalDetalleActividad({
       >
         <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
           {/* Header (Estilo Figma) */}
-          <div className="flex items-start justify-between border-b border-slate-100 px-8 py-5">
+          <div className="flex items-start justify-between border-b border-slate-100 px-4 sm:px-8 py-4 sm:py-5">
             <div className="flex-1 min-w-0">
               <input
                 value={titulo}
@@ -184,8 +184,8 @@ export default function ModalDetalleActividad({
             <div className="p-8 text-center text-sm text-slate-500">{error || 'No se encontró la actividad.'}</div>
           ) : (
             <div className="flex flex-col md:flex-row flex-1 min-h-0 min-w-0 overflow-hidden">
-              {/* Columna Izquierda (Scroll independiente) */}
-              <div className="w-full md:flex-1 p-5 sm:p-8 space-y-6 min-w-0 min-h-0 overflow-y-auto">
+              {/* Columna Izquierda (Scroll suave e independiente) */}
+              <div className="w-full md:flex-1 p-5 sm:p-6 space-y-5 min-w-0 min-h-0 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:#CBD5E1_transparent]">
                 {error && <div className="rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-600">{error}</div>}
                 {success && (
                   <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 border border-emerald-200">
@@ -194,19 +194,19 @@ export default function ModalDetalleActividad({
                   </div>
                 )}
 
-                {/* Estado, Prioridad y Fecha Límite (Diseño exacto de Figma) */}
-                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                  {/* Columna 1: ESTADO (Lista vertical) */}
+                {/* Estado, Prioridad y Fecha Límite (Diseño compacto horizontal) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* ESTADO (Píldoras horizontales) */}
                   <div>
                     <label className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-400">
                       Estado
                     </label>
-                    <div className="flex flex-col items-start gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {[
-                        { label: 'Pendiente', dot: 'bg-[#6366F1]', activeStyle: 'border border-indigo-200 bg-indigo-50 text-indigo-600' },
-                        { label: 'En proceso', dot: 'bg-[#F59E0B]', activeStyle: 'border border-amber-200 bg-amber-50 text-amber-600' },
-                        { label: 'En revisión', dot: 'bg-[#E11D48]', activeStyle: 'border border-[#F43F5E] bg-[#FFF1F2] text-[#E11D48]' },
-                        { label: 'Completada', dot: 'bg-[#10B981]', activeStyle: 'border border-emerald-200 bg-emerald-50 text-emerald-600' },
+                        { label: 'Pendiente', dot: 'bg-[#6366F1]', activeStyle: 'border-indigo-200 bg-indigo-50 text-indigo-600' },
+                        { label: 'En proceso', dot: 'bg-[#F59E0B]', activeStyle: 'border-amber-200 bg-amber-50 text-amber-600' },
+                        { label: 'En revisión', dot: 'bg-[#E11D48]', activeStyle: 'border-[#F43F5E] bg-[#FFF1F2] text-[#E11D48]' },
+                        { label: 'Completada', dot: 'bg-[#10B981]', activeStyle: 'border-emerald-200 bg-emerald-50 text-emerald-600' },
                       ].map((est) => {
                         const isSelected = estado === est.label
                         return (
@@ -214,10 +214,10 @@ export default function ModalDetalleActividad({
                             key={est.label}
                             type="button"
                             onClick={() => setEstado(est.label)}
-                            className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                            className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition cursor-pointer ${
                               isSelected
                                 ? `${est.activeStyle} shadow-2xs font-bold`
-                                : 'border border-transparent text-slate-500 hover:bg-slate-50'
+                                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                             }`}
                           >
                             <span className={`h-2 w-2 rounded-full ${est.dot}`} />
@@ -228,18 +228,17 @@ export default function ModalDetalleActividad({
                     </div>
                   </div>
 
-                  {/* Columna 2: PRIORIDAD + FECHA LÍMITE */}
-                  <div className="space-y-4">
-                    {/* Prioridad (Lista vertical) */}
+                  {/* PRIORIDAD Y FECHA LÍMITE */}
+                  <div className="space-y-3">
                     <div>
                       <label className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
                         Prioridad
                       </label>
-                      <div className="flex flex-col items-start gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         {[
-                          { label: 'Alta', dot: 'bg-[#E53E3E]', activeStyle: 'border border-[#E53E3E] bg-[#FFF5F5] text-[#E53E3E]' },
-                          { label: 'Media', dot: 'bg-[#D69E2E]', activeStyle: 'border border-[#D69E2E] bg-[#FFFBEB] text-[#D69E2E]' },
-                          { label: 'Baja', dot: 'bg-[#38A169]', activeStyle: 'border border-[#38A169] bg-[#F0FFF4] text-[#38A169]' },
+                          { label: 'Alta', dot: 'bg-[#E53E3E]', activeStyle: 'border-[#E53E3E] bg-[#FFF5F5] text-[#E53E3E]' },
+                          { label: 'Media', dot: 'bg-[#D69E2E]', activeStyle: 'border-[#D69E2E] bg-[#FFFBEB] text-[#D69E2E]' },
+                          { label: 'Baja', dot: 'bg-[#38A169]', activeStyle: 'border-[#38A169] bg-[#F0FFF4] text-[#38A169]' },
                         ].map((prio) => {
                           const isSelected = prioridad === prio.label
                           return (
@@ -247,10 +246,10 @@ export default function ModalDetalleActividad({
                               key={prio.label}
                               type="button"
                               onClick={() => setPrioridad(prio.label)}
-                              className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition cursor-pointer ${
                                 isSelected
                                   ? `${prio.activeStyle} shadow-2xs font-bold`
-                                  : 'border border-transparent text-[#6B6B80] hover:bg-slate-50'
+                                  : 'border-slate-200 bg-white text-[#6B6B80] hover:bg-slate-50'
                               }`}
                             >
                               <span className={`h-2 w-2 rounded-full ${prio.dot}`} />
@@ -261,7 +260,6 @@ export default function ModalDetalleActividad({
                       </div>
                     </div>
 
-                    {/* Fecha Límite (Justo debajo de Prioridad) */}
                     <div>
                       <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
                         Fecha límite
@@ -271,7 +269,7 @@ export default function ModalDetalleActividad({
                         min={new Date().toISOString().split('T')[0]}
                         value={fechaLimite}
                         onChange={(e) => setFechaLimite(e.target.value)}
-                        className="w-full sm:w-auto rounded-2xl border border-[#E2E8F0] bg-white px-4 py-1.5 text-xs font-semibold text-[#2D2D3F] outline-none focus:border-[#6C63FF]"
+                        className="w-full sm:w-auto rounded-2xl border border-[#E2E8F0] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#2D2D3F] outline-none focus:border-[#6C63FF]"
                       />
                     </div>
                   </div>
@@ -367,8 +365,8 @@ export default function ModalDetalleActividad({
                   </div>
 
                   {/* Input de Enlace (Estilo Figma) */}
-                  <div className="flex gap-2 mb-3">
-                    <div className="relative flex-1">
+                  <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                    <div className="relative flex-1 min-w-0">
                       <Link2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B80]" />
                       <input
                         type="text"
@@ -388,7 +386,7 @@ export default function ModalDetalleActividad({
                       type="button"
                       onClick={handleAddEvidencia}
                       disabled={!nuevaEvidenciaUrl.trim()}
-                      className="rounded-2xl bg-[#6C63FF] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer shadow-xs"
+                      className="rounded-2xl bg-[#6C63FF] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer shadow-xs whitespace-nowrap flex items-center justify-center"
                     >
                       Agregar enlace
                     </button>
@@ -445,20 +443,20 @@ export default function ModalDetalleActividad({
                   )}
                 </div>
 
-                {/* Botones de Acción (Estilo Figma exacto) */}
-                <div className="flex items-center justify-between border-t border-[#E2E8F0] pt-5">
+                {/* Botones de Acción (Totalmente responsivo en celulares) */}
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-[#E2E8F0] pt-4 sm:pt-5">
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-1.5 rounded-full border border-[#E53E3E]/30 bg-white px-5 py-2.5 text-xs font-bold text-[#E53E3E] transition hover:bg-[#FFF5F5] cursor-pointer"
+                    className="flex items-center justify-center gap-1.5 rounded-full border border-[#E53E3E]/30 bg-white px-4 py-2.5 text-xs font-bold text-[#E53E3E] transition hover:bg-[#FFF5F5] cursor-pointer whitespace-nowrap"
                   >
                     <X className="h-4 w-4" /> Eliminar
                   </button>
-                  <div className="flex gap-2.5">
+                  <div className="flex items-center gap-2 sm:gap-2.5">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="rounded-full border border-[#E2E8F0] bg-white px-5 py-2.5 text-xs font-bold text-[#6B6B80] transition hover:bg-slate-50 cursor-pointer"
+                      className="flex-1 sm:flex-none flex items-center justify-center rounded-full border border-[#E2E8F0] bg-white px-4 sm:px-5 py-2.5 text-xs font-bold text-[#6B6B80] transition hover:bg-slate-50 cursor-pointer whitespace-nowrap"
                     >
                       Cancelar
                     </button>
@@ -466,7 +464,7 @@ export default function ModalDetalleActividad({
                       type="button"
                       onClick={handleGuardarCambios}
                       disabled={isSaving}
-                      className="flex items-center gap-2 rounded-full px-6 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50 cursor-pointer"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-full px-5 sm:px-6 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50 cursor-pointer whitespace-nowrap"
                       style={{ background: 'linear-gradient(135deg, #6C63FF 0%, #4A3A6B 100%)' }}
                     >
                       <Check className="h-4 w-4" />

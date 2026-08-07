@@ -50,6 +50,7 @@ export default function BoardPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [draggedTaskId, setDraggedTaskId] = useState(null)
   const [dragOverColumnTitle, setDragOverColumnTitle] = useState(null)
+  const [activeMobileTab, setActiveMobileTab] = useState('all')
 
   const {
     usuario,
@@ -88,40 +89,68 @@ export default function BoardPage() {
     }
   })
 
-  return (
-    <div className="min-h-screen bg-[#FFF5F7]" style={{ backgroundColor: '#FFF5F7', color: '#2D2D3F' }}>
-      <Header active="Tablero" initials={initials} avatarColor={avatarColor} nombreUsuario={nombreUsuario} />
+  const columnasVisibles = activeMobileTab === 'all'
+    ? columnasFiltradas
+    : columnasFiltradas.filter((c) => c.title === activeMobileTab)
 
-      <main className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-5 rounded-[32px] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+  return (
+    <div className="min-h-screen bg-[#FDF6F8] pb-12">
+      <Header usuario={usuario} />
+
+      <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/70 pb-5">
           <div>
             <h1
-              className="text-2xl font-extrabold"
-              style={{ color: '#4A3A6B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              className="text-xl font-bold tracking-tight sm:text-2xl"
+              style={{ color: '#2D2D3F', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
             >
               Tablero del Proyecto
             </h1>
-            <p className="mt-2 text-sm" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-              {proyectoLabel}
+            <p
+              className="mt-0.5 text-sm font-medium"
+              style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}
+            >
+              {usuario?.sinProyectos ? 'Sin proyecto activo' : usuario?.proyectoNombre}
             </p>
           </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label className="relative block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B80]" />
+          <div className="flex items-center gap-3">
+            {usuario?.sinProyectos ? (
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
+                Selecciona o crea un proyecto en "Mis Tableros"
+              </span>
+            ) : null}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  const el = document.getElementById('board-search-input')
+                  if (el) {
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none'
+                    if (el.style.display === 'block') el.focus()
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:border-slate-300 cursor-pointer"
+                style={{ fontFamily: 'Nunito, sans-serif' }}
+              >
+                <Search className="h-4 w-4" />
+                Buscar
+              </button>
               <input
-                type="search"
-                placeholder="Buscar"
+                id="board-search-input"
+                type="text"
+                placeholder="Buscar tarea..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-12 rounded-2xl border border-[#E5E7F0] bg-white pl-10 pr-4 text-sm text-[#2D2D3F] outline-none"
-                style={{ fontFamily: 'Nunito, sans-serif' }}
+                onBlur={(e) => {
+                  if (!e.target.value) e.target.style.display = 'none'
+                }}
+                style={{ display: 'none', fontFamily: 'Nunito, sans-serif' }}
+                className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm shadow-lg outline-none focus:border-[#6D5BD0] focus:ring-2 focus:ring-[#6D5BD0]/20 z-10"
               />
-            </label>
+            </div>
             <button
               onClick={() => handleOpenNewTaskModal('Pendiente')}
               disabled={usuario?.sinProyectos || isLoading}
-              className={`inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition ${
+              className={`inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition ${
                 usuario?.sinProyectos || isLoading
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:opacity-95 cursor-pointer'
@@ -133,7 +162,7 @@ export default function BoardPage() {
               }}
               title={usuario?.sinProyectos ? 'Crea un proyecto primero para poder añadir tareas' : 'Nueva tarea'}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-1.5 h-4 w-4" />
               Nueva tarea
             </button>
           </div>
@@ -176,9 +205,48 @@ export default function BoardPage() {
           </div>
         ) : null}
 
+        {!isLoading && !error && !usuario?.sinProyectos && (
+          <div className="mb-4 flex items-center gap-1.5 overflow-x-auto pb-2 [scrollbar-width:none] lg:hidden">
+            <button
+              onClick={() => setActiveMobileTab('all')}
+              className={`flex-shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition cursor-pointer ${
+                activeMobileTab === 'all'
+                  ? 'bg-[#6C63FF] text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+              }`}
+            >
+              Ver todas
+            </button>
+            {columnas.map((col) => {
+              const isSelected = activeMobileTab === col.title
+              return (
+                <button
+                  key={col.title}
+                  onClick={() => setActiveMobileTab(col.title)}
+                  className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs transition cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#2D2342] text-white shadow-xs font-bold'
+                      : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 font-semibold'
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: col.accent }} />
+                  <span>{col.title}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    {col.count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {!isLoading && !error && !usuario?.sinProyectos ? (
-          <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            {columnasFiltradas.map((column) => {
+          <section className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 pt-1 px-1 snap-x snap-mandatory scroll-smooth [scrollbar-width:thin] [scrollbar-color:#CBD5E1_transparent] lg:grid lg:grid-cols-4 lg:overflow-x-visible">
+            {columnasVisibles.map((column) => {
               const isOver = dragOverColumnTitle === column.title
 
               return (
@@ -210,7 +278,11 @@ export default function BoardPage() {
                     setDraggedTaskId(null)
                     setDragOverColumnTitle(null)
                   }}
-                  className={`rounded-3xl p-5 transition-all duration-200 ${
+                  className={`${
+                    activeMobileTab === 'all'
+                      ? 'w-[85vw] max-w-[320px] sm:w-[320px]'
+                      : 'w-full max-w-full'
+                  } lg:w-full flex-shrink-0 snap-center rounded-3xl p-4 sm:p-5 transition-all duration-200 ${
                     isOver ? 'ring-2 shadow-xl scale-[1.01]' : 'shadow-sm'
                   }`}
                   style={{
