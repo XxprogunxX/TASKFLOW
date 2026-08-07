@@ -365,8 +365,8 @@ export default function ModalDetalleActividad({
                   </div>
 
                   {/* Input de Enlace (Estilo Figma) */}
-                  <div className="flex gap-2 mb-3">
-                    <div className="relative flex-1">
+                  <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                    <div className="relative flex-1 min-w-0">
                       <Link2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B80]" />
                       <input
                         type="text"
@@ -386,7 +386,7 @@ export default function ModalDetalleActividad({
                       type="button"
                       onClick={handleAddEvidencia}
                       disabled={!nuevaEvidenciaUrl.trim()}
-                      className="rounded-2xl bg-[#6C63FF] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer shadow-xs"
+                      className="rounded-2xl bg-[#6C63FF] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer shadow-xs whitespace-nowrap flex items-center justify-center"
                     >
                       Agregar enlace
                     </button>
@@ -443,20 +443,20 @@ export default function ModalDetalleActividad({
                   )}
                 </div>
 
-                {/* Botones de Acción (Estilo Figma exacto) */}
-                <div className="flex items-center justify-between border-t border-[#E2E8F0] pt-5">
+                {/* Botones de Acción (Totalmente responsivo en celulares) */}
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-[#E2E8F0] pt-4 sm:pt-5">
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-1.5 rounded-full border border-[#E53E3E]/30 bg-white px-5 py-2.5 text-xs font-bold text-[#E53E3E] transition hover:bg-[#FFF5F5] cursor-pointer"
+                    className="flex items-center justify-center gap-1.5 rounded-full border border-[#E53E3E]/30 bg-white px-4 py-2.5 text-xs font-bold text-[#E53E3E] transition hover:bg-[#FFF5F5] cursor-pointer whitespace-nowrap"
                   >
                     <X className="h-4 w-4" /> Eliminar
                   </button>
-                  <div className="flex gap-2.5">
+                  <div className="flex items-center gap-2 sm:gap-2.5">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="rounded-full border border-[#E2E8F0] bg-white px-5 py-2.5 text-xs font-bold text-[#6B6B80] transition hover:bg-slate-50 cursor-pointer"
+                      className="flex-1 sm:flex-none flex items-center justify-center rounded-full border border-[#E2E8F0] bg-white px-4 sm:px-5 py-2.5 text-xs font-bold text-[#6B6B80] transition hover:bg-slate-50 cursor-pointer whitespace-nowrap"
                     >
                       Cancelar
                     </button>
@@ -464,7 +464,7 @@ export default function ModalDetalleActividad({
                       type="button"
                       onClick={handleGuardarCambios}
                       disabled={isSaving}
-                      className="flex items-center gap-2 rounded-full px-6 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50 cursor-pointer"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-full px-5 sm:px-6 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50 cursor-pointer whitespace-nowrap"
                       style={{ background: 'linear-gradient(135deg, #6C63FF 0%, #4A3A6B 100%)' }}
                     >
                       <Check className="h-4 w-4" />
