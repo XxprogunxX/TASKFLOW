@@ -137,7 +137,7 @@ export default function ModalDetalleActividad({
       >
         <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
           {/* Header (Estilo Figma) */}
-          <div className="flex items-start justify-between border-b border-slate-100 px-8 py-5">
+          <div className="flex items-start justify-between border-b border-slate-100 px-4 sm:px-8 py-4 sm:py-5">
             <div className="flex-1 min-w-0">
               <input
                 value={titulo}

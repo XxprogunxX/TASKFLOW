@@ -177,7 +177,7 @@ export default function BoardPage() {
         ) : null}
 
         {!isLoading && !error && !usuario?.sinProyectos ? (
-          <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <section className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 pt-1 px-1 snap-x snap-mandatory scroll-smooth [scrollbar-width:thin] [scrollbar-color:#CBD5E1_transparent] lg:grid lg:grid-cols-4 lg:overflow-x-visible">
             {columnasFiltradas.map((column) => {
               const isOver = dragOverColumnTitle === column.title
 
@@ -210,7 +210,7 @@ export default function BoardPage() {
                     setDraggedTaskId(null)
                     setDragOverColumnTitle(null)
                   }}
-                  className={`rounded-3xl p-5 transition-all duration-200 ${
+                  className={`w-[85vw] max-w-[320px] sm:w-[320px] lg:w-full flex-shrink-0 snap-center rounded-3xl p-4 sm:p-5 transition-all duration-200 ${
                     isOver ? 'ring-2 shadow-xl scale-[1.01]' : 'shadow-sm'
                   }`}
                   style={{
