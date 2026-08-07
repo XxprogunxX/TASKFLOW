@@ -184,8 +184,8 @@ export default function ModalDetalleActividad({
             <div className="p-8 text-center text-sm text-slate-500">{error || 'No se encontró la actividad.'}</div>
           ) : (
             <div className="flex flex-col md:flex-row flex-1 min-h-0 min-w-0 overflow-hidden">
-              {/* Columna Izquierda (Scroll independiente) */}
-              <div className="w-full md:flex-1 p-5 sm:p-8 space-y-6 min-w-0 min-h-0 overflow-y-auto">
+              {/* Columna Izquierda (Scroll suave e independiente) */}
+              <div className="w-full md:flex-1 p-5 sm:p-6 space-y-5 min-w-0 min-h-0 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:#CBD5E1_transparent]">
                 {error && <div className="rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-600">{error}</div>}
                 {success && (
                   <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 border border-emerald-200">
@@ -194,19 +194,19 @@ export default function ModalDetalleActividad({
                   </div>
                 )}
 
-                {/* Estado, Prioridad y Fecha Límite (Diseño exacto de Figma) */}
-                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                  {/* Columna 1: ESTADO (Lista vertical) */}
+                {/* Estado, Prioridad y Fecha Límite (Diseño compacto horizontal) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* ESTADO (Píldoras horizontales) */}
                   <div>
                     <label className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-400">
                       Estado
                     </label>
-                    <div className="flex flex-col items-start gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {[
-                        { label: 'Pendiente', dot: 'bg-[#6366F1]', activeStyle: 'border border-indigo-200 bg-indigo-50 text-indigo-600' },
-                        { label: 'En proceso', dot: 'bg-[#F59E0B]', activeStyle: 'border border-amber-200 bg-amber-50 text-amber-600' },
-                        { label: 'En revisión', dot: 'bg-[#E11D48]', activeStyle: 'border border-[#F43F5E] bg-[#FFF1F2] text-[#E11D48]' },
-                        { label: 'Completada', dot: 'bg-[#10B981]', activeStyle: 'border border-emerald-200 bg-emerald-50 text-emerald-600' },
+                        { label: 'Pendiente', dot: 'bg-[#6366F1]', activeStyle: 'border-indigo-200 bg-indigo-50 text-indigo-600' },
+                        { label: 'En proceso', dot: 'bg-[#F59E0B]', activeStyle: 'border-amber-200 bg-amber-50 text-amber-600' },
+                        { label: 'En revisión', dot: 'bg-[#E11D48]', activeStyle: 'border-[#F43F5E] bg-[#FFF1F2] text-[#E11D48]' },
+                        { label: 'Completada', dot: 'bg-[#10B981]', activeStyle: 'border-emerald-200 bg-emerald-50 text-emerald-600' },
                       ].map((est) => {
                         const isSelected = estado === est.label
                         return (
@@ -214,10 +214,10 @@ export default function ModalDetalleActividad({
                             key={est.label}
                             type="button"
                             onClick={() => setEstado(est.label)}
-                            className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                            className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition cursor-pointer ${
                               isSelected
                                 ? `${est.activeStyle} shadow-2xs font-bold`
-                                : 'border border-transparent text-slate-500 hover:bg-slate-50'
+                                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                             }`}
                           >
                             <span className={`h-2 w-2 rounded-full ${est.dot}`} />
@@ -228,18 +228,17 @@ export default function ModalDetalleActividad({
                     </div>
                   </div>
 
-                  {/* Columna 2: PRIORIDAD + FECHA LÍMITE */}
-                  <div className="space-y-4">
-                    {/* Prioridad (Lista vertical) */}
+                  {/* PRIORIDAD Y FECHA LÍMITE */}
+                  <div className="space-y-3">
                     <div>
                       <label className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
                         Prioridad
                       </label>
-                      <div className="flex flex-col items-start gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         {[
-                          { label: 'Alta', dot: 'bg-[#E53E3E]', activeStyle: 'border border-[#E53E3E] bg-[#FFF5F5] text-[#E53E3E]' },
-                          { label: 'Media', dot: 'bg-[#D69E2E]', activeStyle: 'border border-[#D69E2E] bg-[#FFFBEB] text-[#D69E2E]' },
-                          { label: 'Baja', dot: 'bg-[#38A169]', activeStyle: 'border border-[#38A169] bg-[#F0FFF4] text-[#38A169]' },
+                          { label: 'Alta', dot: 'bg-[#E53E3E]', activeStyle: 'border-[#E53E3E] bg-[#FFF5F5] text-[#E53E3E]' },
+                          { label: 'Media', dot: 'bg-[#D69E2E]', activeStyle: 'border-[#D69E2E] bg-[#FFFBEB] text-[#D69E2E]' },
+                          { label: 'Baja', dot: 'bg-[#38A169]', activeStyle: 'border-[#38A169] bg-[#F0FFF4] text-[#38A169]' },
                         ].map((prio) => {
                           const isSelected = prioridad === prio.label
                           return (
@@ -247,10 +246,10 @@ export default function ModalDetalleActividad({
                               key={prio.label}
                               type="button"
                               onClick={() => setPrioridad(prio.label)}
-                              className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition cursor-pointer ${
                                 isSelected
                                   ? `${prio.activeStyle} shadow-2xs font-bold`
-                                  : 'border border-transparent text-[#6B6B80] hover:bg-slate-50'
+                                  : 'border-slate-200 bg-white text-[#6B6B80] hover:bg-slate-50'
                               }`}
                             >
                               <span className={`h-2 w-2 rounded-full ${prio.dot}`} />
@@ -261,7 +260,6 @@ export default function ModalDetalleActividad({
                       </div>
                     </div>
 
-                    {/* Fecha Límite (Justo debajo de Prioridad) */}
                     <div>
                       <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
                         Fecha límite
@@ -271,7 +269,7 @@ export default function ModalDetalleActividad({
                         min={new Date().toISOString().split('T')[0]}
                         value={fechaLimite}
                         onChange={(e) => setFechaLimite(e.target.value)}
-                        className="w-full sm:w-auto rounded-2xl border border-[#E2E8F0] bg-white px-4 py-1.5 text-xs font-semibold text-[#2D2D3F] outline-none focus:border-[#6C63FF]"
+                        className="w-full sm:w-auto rounded-2xl border border-[#E2E8F0] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#2D2D3F] outline-none focus:border-[#6C63FF]"
                       />
                     </div>
                   </div>
