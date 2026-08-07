@@ -88,36 +88,50 @@ export default function BoardPage() {
     }
   })
 
-  return (
-    <div className="min-h-screen bg-[#FFF5F7]" style={{ backgroundColor: '#FFF5F7', color: '#2D2D3F' }}>
-      <Header active="Tablero" initials={initials} avatarColor={avatarColor} nombreUsuario={nombreUsuario} />
+  const columnasVisibles = activeMobileTab === 'all'
+    ? columnasFiltradas
+    : columnasFiltradas.filter((c) => c.title === activeMobileTab)
 
-      <main className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-5 rounded-[32px] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1
-              className="text-2xl font-extrabold"
-              style={{ color: '#4A3A6B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              Tablero del Proyecto
-            </h1>
-            <p className="mt-2 text-sm" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-              {proyectoLabel}
-            </p>
+  return (
+    <div className="min-h-screen bg-[#FDF6F8] pb-12">
+      <Header usuario={usuario} />
+
+      <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <div className="mb-6 rounded-3xl bg-white p-6 shadow-xs sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1
+                className="text-2xl font-bold tracking-tight sm:text-3xl"
+                style={{ color: '#2D2D3F', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              >
+                Tablero del Proyecto
+              </h1>
+              <p
+                className="mt-1 text-sm font-semibold uppercase tracking-wider"
+                style={{ color: '#6D5BD0', fontFamily: 'Nunito, sans-serif' }}
+              >
+                {usuario?.sinProyectos ? 'Sin proyecto activo' : usuario?.proyectoNombre}
+              </p>
+            </div>
+            {usuario?.sinProyectos ? (
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
+                Selecciona o crea un proyecto en "Mis Tableros"
+              </span>
+            ) : null}
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label className="relative block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B80]" />
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
-                type="search"
+                type="text"
                 placeholder="Buscar"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-12 rounded-2xl border border-[#E5E7F0] bg-white pl-10 pr-4 text-sm text-[#2D2D3F] outline-none"
-                style={{ fontFamily: 'Nunito, sans-serif' }}
+                className="w-full rounded-2xl border border-[#E5E7F0] bg-white pl-10 pr-4 py-2.5 text-sm outline-none transition focus:border-[#6D5BD0] focus:ring-2 focus:ring-[#6D5BD0]/20"
+                style={{ color: '#2D2D3F', fontFamily: 'Nunito, sans-serif' }}
               />
-            </label>
+            </div>
             <button
               onClick={() => handleOpenNewTaskModal('Pendiente')}
               disabled={usuario?.sinProyectos || isLoading}
@@ -176,9 +190,48 @@ export default function BoardPage() {
           </div>
         ) : null}
 
+        {!isLoading && !error && !usuario?.sinProyectos && (
+          <div className="mb-4 flex items-center gap-1.5 overflow-x-auto pb-2 [scrollbar-width:none] lg:hidden">
+            <button
+              onClick={() => setActiveMobileTab('all')}
+              className={`flex-shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition cursor-pointer ${
+                activeMobileTab === 'all'
+                  ? 'bg-[#6C63FF] text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+              }`}
+            >
+              Ver todas
+            </button>
+            {columnas.map((col) => {
+              const isSelected = activeMobileTab === col.title
+              return (
+                <button
+                  key={col.title}
+                  onClick={() => setActiveMobileTab(col.title)}
+                  className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs transition cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#2D2342] text-white shadow-xs font-bold'
+                      : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 font-semibold'
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: col.accent }} />
+                  <span>{col.title}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    {col.count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {!isLoading && !error && !usuario?.sinProyectos ? (
           <section className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 pt-1 px-1 snap-x snap-mandatory scroll-smooth [scrollbar-width:thin] [scrollbar-color:#CBD5E1_transparent] lg:grid lg:grid-cols-4 lg:overflow-x-visible">
-            {columnasFiltradas.map((column) => {
+            {columnasVisibles.map((column) => {
               const isOver = dragOverColumnTitle === column.title
 
               return (
@@ -210,7 +263,11 @@ export default function BoardPage() {
                     setDraggedTaskId(null)
                     setDragOverColumnTitle(null)
                   }}
-                  className={`w-[85vw] max-w-[320px] sm:w-[320px] lg:w-full flex-shrink-0 snap-center rounded-3xl p-4 sm:p-5 transition-all duration-200 ${
+                  className={`${
+                    activeMobileTab === 'all'
+                      ? 'w-[85vw] max-w-[320px] sm:w-[320px]'
+                      : 'w-full max-w-full'
+                  } lg:w-full flex-shrink-0 snap-center rounded-3xl p-4 sm:p-5 transition-all duration-200 ${
                     isOver ? 'ring-2 shadow-xl scale-[1.01]' : 'shadow-sm'
                   }`}
                   style={{
