@@ -154,7 +154,7 @@ export async function addComentarioActividad(idActividad, idUsuario, texto) {
 export async function fetchEvidenciasActividad(idActividad) {
   const { data, error } = await supabase
     .from('evidencias')
-    .select('id_evidencia, url_evidencia, descripcion, fecha_subida')
+    .select('*')
     .eq('id_actividad', idActividad)
     .order('fecha_subida', { ascending: false })
 
@@ -182,6 +182,58 @@ export async function addEvidenciaActividad(idActividad, urlEvidencia, descripci
   }
 
   return data
+}
+
+/** Elimina una evidencia de una actividad */
+export async function deleteEvidenciaActividad(evidencia, idActividad) {
+  if (!evidencia) return
+
+  const targetId = typeof evidencia === 'object' ? (evidencia.id_evidencia || evidencia.id) : (typeof evidencia === 'number' || /^\d+$/.test(evidencia) ? Number(evidencia) : null)
+  const targetUrl = typeof evidencia === 'object' ? (evidencia.url_evidencia || evidencia.url) : (typeof evidencia === 'string' ? evidencia : null)
+  const actId = idActividad || (typeof evidencia === 'object' ? evidencia.id_actividad : null)
+
+  let deleted = false
+
+  // 1. Delete by id_evidencia
+  if (targetId !== null && targetId !== undefined) {
+    let q = supabase.from('evidencias').delete().eq('id_evidencia', targetId)
+    if (actId) q = q.eq('id_actividad', actId)
+    
+    const { error } = await q
+    if (!error) {
+      deleted = true
+    }
+  }
+
+  // 2. Fallback: Delete by url_evidencia
+  if (!deleted && targetUrl) {
+    let q = supabase.from('evidencias').delete().eq('url_evidencia', targetUrl)
+    if (actId) q = q.eq('id_actividad', actId)
+    
+    const { error } = await q
+    if (!error) {
+      deleted = true
+    }
+  }
+
+  // 3. Fallback: Delete by ilike URL match
+  if (!deleted && targetUrl) {
+    const cleanUrl = targetUrl.replace(/^https?:\/\//i, '').trim()
+    if (cleanUrl) {
+      let q = supabase.from('evidencias').delete().ilike('url_evidencia', `%${cleanUrl}%`)
+      if (actId) q = q.eq('id_actividad', actId)
+      
+      const { error } = await q
+      if (!error) {
+        deleted = true
+      }
+    }
+  }
+
+  if (!deleted) {
+    // Si llegamos aquí y no pudimos borrar, lanzamos error general
+    console.warn('No se pudo confirmar la eliminación de la evidencia', evidencia)
+  }
 }
 
 /** Actualiza todos los campos editables de una actividad */

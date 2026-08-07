@@ -7,6 +7,7 @@ import {
   fetchEvidenciasActividad,
   addComentarioActividad,
   addEvidenciaActividad,
+  deleteEvidenciaActividad,
   updateActividadCompleta,
   deleteActividad,
   mapUsuarioToResponsable,
@@ -51,6 +52,7 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
   // Campos editables
   const [titulo, setTitulo] = useState('')
   const [descripcion, setDescripcion] = useState('')
+  const [tags, setTags] = useState([])
   const [estado, setEstado] = useState('Pendiente')
   const [prioridad, setPrioridad] = useState('Media')
   const [fechaLimite, setFechaLimite] = useState('')
@@ -66,6 +68,15 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  const extractTagsFromText = (desc = '') => {
+    if (!desc) return []
+    const match = desc.match(/(?:Etiquetas|Etiqueta|Tags|Tag):\s*([^\n]+)/i)
+    if (match && match[1]) {
+      return match[1].split(',').map((t) => t.trim()).filter(Boolean)
+    }
+    return []
+  }
+
   useEffect(() => {
     if (!isOpen || !actividadId) {
       setActividad(null)
@@ -75,6 +86,7 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
       setEvidencias([])
       setTitulo('')
       setDescripcion('')
+      setTags([])
       setEstado('Pendiente')
       setPrioridad('Media')
       setFechaLimite('')
@@ -111,9 +123,15 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
           setComentarios(listaComentarios)
           setEvidencias(listaEvidencias)
           
-          // Inicializar campos editables con valores de la actividad
+          // Extraer etiquetas y limpiar descripción
+          const parsedTags = extractTagsFromText(detalle.descripcion)
+          const cleanDesc = (detalle.descripcion || '')
+            .replace(/(?:\r\n|\r|\n)*?(?:Etiquetas|Etiqueta|Tags|Tag):\s*[^\n]+/gi, '')
+            .trim()
+
           setTitulo(detalle.titulo || '')
-          setDescripcion(detalle.descripcion || '')
+          setDescripcion(cleanDesc)
+          setTags(parsedTags)
           setEstado(estadoMap[detalle.estado] || 'Pendiente')
           setPrioridad(priorityMap[detalle.prioridad] || 'Media')
           setFechaLimite(detalle.fecha_limite ? detalle.fecha_limite.split('T')[0] : '')
@@ -183,14 +201,31 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
   const handleGuardarCambios = useCallback(async () => {
     if (!actividadId) return
 
+    if (fechaLimite) {
+      const selected = new Date(`${fechaLimite}T00:00:00`)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      if (selected < today) {
+        setError('La fecha límite no puede ser anterior a la fecha actual.')
+        return
+      }
+    }
+
     setIsSaving(true)
     setError('')
     setSuccess('')
 
     try {
+      const descConEtiquetas = [
+        descripcion.trim(),
+        tags.length > 0 ? `Etiquetas: ${tags.join(', ')}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n\n')
+
       const campos = {
         titulo: titulo.trim(),
-        descripcion: descripcion.trim() || null,
+        descripcion: descConEtiquetas || null,
         estado: reverseEstadoMap[estado],
         prioridad: reversePriorityMap[prioridad],
         fecha_limite: fechaLimite || null,
@@ -263,14 +298,40 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
     }
   }, [actividadId, nuevoComentario])
 
+function isValidUrl(string) {
+  if (!string) return false
+  const trimmed = string.trim()
+  if (/\s/.test(trimmed)) return false
+  try {
+    const urlToTest = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+    const parsed = new URL(urlToTest)
+    const hostParts = parsed.hostname.split('.')
+    if (hostParts.length < 2) return false
+    const tld = hostParts[hostParts.length - 1]
+    return tld.length >= 2 && /^[a-zA-Z]+$/.test(tld)
+  } catch (e) {
+    return false
+  }
+}
+
   const handleAddEvidencia = useCallback(async () => {
-    if (!actividadId || !nuevaEvidenciaUrl.trim()) return
+    const trimmed = nuevaEvidenciaUrl.trim()
+    if (!actividadId || !trimmed) return
+
+    if (!isValidUrl(trimmed)) {
+      setError('Por favor, ingresa un enlace o URL válida (ej. https://drive.google.com/..., figma.com, etc.). No se permiten mensajes ni texto plano.')
+      return
+    }
 
     setIsSaving(true)
     setError('')
 
     try {
-      const evidencia = await addEvidenciaActividad(actividadId, nuevaEvidenciaUrl, nuevaEvidenciaDesc)
+      let formattedUrl = trimmed
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = `https://${formattedUrl}`
+      }
+      const evidencia = await addEvidenciaActividad(actividadId, formattedUrl, nuevaEvidenciaDesc?.trim() || formattedUrl)
       
       setEvidencias((current) => [evidencia, ...current])
       setNuevaEvidenciaUrl('')
@@ -282,6 +343,97 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
       setIsSaving(false)
     }
   }, [actividadId, nuevaEvidenciaUrl, nuevaEvidenciaDesc])
+
+  const handleUploadPdfEvidencia = useCallback(async (fileList) => {
+    if (!actividadId || !fileList || fileList.length === 0) return
+
+    setIsSaving(true)
+    setError('')
+
+    try {
+      const files = Array.from(fileList)
+      for (const file of files) {
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+        if (!isPdf) {
+          throw new Error('Solo se permite subir archivos PDF (.pdf) y enlaces.')
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error(`El archivo "${file.name}" supera el tamaño máximo permitido de 10 MB.`)
+        }
+
+        let fileUrl = ''
+        try {
+          const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+          const filePath = `actividades/${actividadId}/${fileName}`
+
+          const { error: uploadErr } = await supabase.storage
+            .from('evidencias')
+            .upload(filePath, file, { contentType: 'application/pdf', upsert: true })
+
+          if (!uploadErr) {
+            const { data: publicUrlData } = supabase.storage.from('evidencias').getPublicUrl(filePath)
+            fileUrl = publicUrlData?.publicUrl || ''
+          }
+        } catch (e) {
+          console.warn('Supabase storage upload fallback:', e)
+        }
+
+        if (!fileUrl) {
+          fileUrl = await new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onload = (e) => resolve(e.target.result)
+            reader.onerror = () => resolve('')
+            reader.readAsDataURL(file)
+          })
+        }
+
+        if (fileUrl) {
+          const evidencia = await addEvidenciaActividad(actividadId, fileUrl, `PDF: ${file.name}`)
+          setEvidencias((current) => [evidencia, ...current])
+        }
+      }
+
+      setSuccess('Archivo PDF subido correctamente.')
+    } catch (err) {
+      setError(err.message || 'No se pudo subir el archivo PDF.')
+    } finally {
+      setIsSaving(false)
+    }
+  }, [actividadId])
+
+  const handleDeleteEvidencia = useCallback(async (evidenciaItem) => {
+    if (!evidenciaItem) return
+
+    setIsSaving(true)
+    setError('')
+
+    try {
+      await deleteEvidenciaActividad(evidenciaItem, actividadId)
+
+      const targetId = typeof evidenciaItem === 'object' ? (evidenciaItem.id_evidencia || evidenciaItem.id) : (typeof evidenciaItem === 'number' || /^\d+$/.test(evidenciaItem) ? evidenciaItem : null)
+      const targetUrl = typeof evidenciaItem === 'object' ? (evidenciaItem.url_evidencia || evidenciaItem.url) : (typeof evidenciaItem === 'string' ? evidenciaItem : null)
+
+      setEvidencias((current) =>
+        current.filter((item) => {
+          const itemId = item.id_evidencia || item.id
+          const itemUrl = item.url_evidencia || item.url
+          if (targetId && itemId && String(itemId) === String(targetId)) return false
+          if (targetUrl && itemUrl && (itemUrl === targetUrl || itemUrl.trim() === targetUrl.trim())) return false
+          return true
+        })
+      )
+
+      if (onActivityUpdated) {
+        onActivityUpdated()
+      }
+
+      setSuccess('Evidencia eliminada correctamente.')
+    } catch (err) {
+      setError(err.message || 'No se pudo eliminar la evidencia.')
+    } finally {
+      setIsSaving(false)
+    }
+  }, [actividadId, onActivityUpdated])
 
   const handleDeleteActividad = useCallback(async () => {
     if (!actividadId) return
@@ -303,6 +455,16 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
     }
   }, [actividadId, onActivityDeleted])
 
+  const addTag = useCallback((newTag) => {
+    const trimmed = (newTag || '').trim()
+    if (!trimmed) return
+    setTags((current) => (current.includes(trimmed) ? current : [...current, trimmed]))
+  }, [])
+
+  const removeTag = useCallback((tagToRemove) => {
+    setTags((current) => current.filter((t) => t !== tagToRemove))
+  }, [])
+
   return {
     actividad,
     miembros,
@@ -314,6 +476,10 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
     setTitulo,
     descripcion,
     setDescripcion,
+    tags,
+    setTags,
+    addTag,
+    removeTag,
     estado,
     setEstado,
     prioridad,
@@ -335,6 +501,8 @@ export function useActivityDetail({ actividadId, proyectoId, isOpen, onResponsab
     handleGuardarCambios,
     handleAddComentario,
     handleAddEvidencia,
+    handleUploadPdfEvidencia,
+    handleDeleteEvidencia,
     handleDeleteActividad,
   }
 }

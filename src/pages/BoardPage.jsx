@@ -48,6 +48,8 @@ export default function BoardPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState('')
+  const [draggedTaskId, setDraggedTaskId] = useState(null)
+  const [dragOverColumnTitle, setDragOverColumnTitle] = useState(null)
 
   const {
     usuario,
@@ -58,6 +60,7 @@ export default function BoardPage() {
     updateTaskResponsable,
     updateTaskFields,
     deleteTaskFromBoard,
+    moveTaskToColumn,
   } = useBoard(targetProyectoId)
 
   const handleOpenNewTaskModal = (columnTitle = 'Pendiente') => {
@@ -175,170 +178,231 @@ export default function BoardPage() {
 
         {!isLoading && !error && !usuario?.sinProyectos ? (
           <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            {columnasFiltradas.map((column) => (
-              <div
-                key={column.title}
-                className="rounded-3xl p-5 shadow-sm"
-                style={{ backgroundColor: '#F8F0FF' }}
-              >
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="inline-flex h-3.5 w-3.5 rounded-full"
-                      style={{ backgroundColor: column.accent }}
-                    />
-                    <h2
-                      className="text-sm font-semibold"
-                      style={{ color: '#2D2D3F', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                    >
-                      {column.title}
-                    </h2>
-                  </div>
-                  <div
-                    className="rounded-full px-3 py-1 text-xs font-semibold"
-                    style={{ backgroundColor: '#F3F4F6', color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}
-                  >
-                    {column.count}
-                  </div>
-                  <button
-                    onClick={() => handleOpenNewTaskModal(column.title)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-2xl transition hover:bg-slate-100 hover:scale-105 active:scale-95 cursor-pointer"
-                    style={{ backgroundColor: '#FFFFFF', color: '#6B6B80' }}
-                    aria-label={`Agregar tarea a ${column.title}`}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
+            {columnasFiltradas.map((column) => {
+              const isOver = dragOverColumnTitle === column.title
 
-                <div className="mb-3 h-2 overflow-hidden rounded-full bg-white">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${column.progress}%`, backgroundColor: column.accent }}
-                  />
-                </div>
-                <p className="text-xs" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
-                  {column.progress}% del total
-                </p>
-
-                <div className="mt-5 space-y-4">
-                  {column.tasks.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-6 text-center text-sm text-slate-500">
-                      Sin tareas aún
-                    </div>
-                  ) : null}
-
-                  {column.tasks.map((task) => {
-                    const priority = priorityStyles[task.priority] || priorityStyles.Media
-
-                    return (
-                      <button
-                        key={task.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedTaskId(task.id)
-                          setIsDetailOpen(true)
-                        }}
-                        className="w-full rounded-2xl border border-[#E5E7F0] bg-white p-4 text-left shadow-sm transition hover:shadow-md"
+              return (
+                <div
+                  key={column.title}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    if (dragOverColumnTitle !== column.title) {
+                      setDragOverColumnTitle(column.title)
+                    }
+                  }}
+                  onDragLeave={(e) => {
+                    if (e.currentTarget.contains(e.relatedTarget)) return
+                    setDragOverColumnTitle(null)
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    try {
+                      const raw = e.dataTransfer.getData('text/plain')
+                      if (raw) {
+                        const { taskId, fromColumn } = JSON.parse(raw)
+                        if (taskId && fromColumn !== column.title) {
+                          moveTaskToColumn(taskId, column.title)
+                        }
+                      }
+                    } catch (err) {
+                      console.error('Error al procesar soltado:', err)
+                    }
+                    setDraggedTaskId(null)
+                    setDragOverColumnTitle(null)
+                  }}
+                  className={`rounded-3xl p-5 transition-all duration-200 ${
+                    isOver ? 'ring-2 shadow-xl scale-[1.01]' : 'shadow-sm'
+                  }`}
+                  style={{
+                    backgroundColor: isOver ? `${column.accent}10` : '#F8F0FF',
+                    border: isOver ? `2px solid ${column.accent}` : '2px solid transparent',
+                  }}
+                >
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="inline-flex h-3.5 w-3.5 rounded-full"
+                        style={{ backgroundColor: column.accent }}
+                      />
+                      <h2
+                        className="text-sm font-semibold"
+                        style={{ color: '#2D2D3F', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <h3
-                              className="text-sm font-semibold leading-snug"
-                              style={{ color: '#2D2D3F', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                            >
-                              {task.title}
-                            </h3>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {task.tags.map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="rounded-full px-2 py-1 text-[11px] font-medium"
-                                  style={{
-                                    backgroundColor: '#F3E8FF',
-                                    color: '#4A3A6B',
-                                    fontFamily: 'Nunito, sans-serif',
-                                  }}
-                                >
-                                  {tag}
-                                </span>
-                              ))}
+                        {column.title}
+                      </h2>
+                    </div>
+                    <div
+                      className="rounded-full px-3 py-1 text-xs font-semibold"
+                      style={{ backgroundColor: '#F3F4F6', color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}
+                    >
+                      {column.count}
+                    </div>
+                    <button
+                      onClick={() => handleOpenNewTaskModal(column.title)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-2xl transition hover:bg-slate-100 hover:scale-105 active:scale-95 cursor-pointer"
+                      style={{ backgroundColor: '#FFFFFF', color: '#6B6B80' }}
+                      aria-label={`Agregar tarea a ${column.title}`}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="mb-3 h-2 overflow-hidden rounded-full bg-white">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${column.progress}%`, backgroundColor: column.accent }}
+                    />
+                  </div>
+                  <p className="text-xs" style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}>
+                    {column.progress}% del total
+                  </p>
+
+                  <div className="mt-5 space-y-4">
+                    {column.tasks.length === 0 && !draggedTaskId ? (
+                      <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-6 text-center text-sm text-slate-500">
+                        Sin tareas aún
+                      </div>
+                    ) : null}
+
+                    {column.tasks.map((task) => {
+                      const priority = priorityStyles[task.priority] || priorityStyles.Media
+                      const isDraggingThis = draggedTaskId === task.id
+
+                      return (
+                        <div
+                          key={task.id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', JSON.stringify({ taskId: task.id, fromColumn: column.title }))
+                            setDraggedTaskId(task.id)
+                          }}
+                          onDragEnd={() => {
+                            setDraggedTaskId(null)
+                            setDragOverColumnTitle(null)
+                          }}
+                          onClick={() => {
+                            setSelectedTaskId(task.id)
+                            setIsDetailOpen(true)
+                          }}
+                          className={`w-full rounded-2xl border bg-white p-4 text-left shadow-sm transition-all duration-150 cursor-grab active:cursor-grabbing ${
+                            isDraggingThis
+                              ? 'opacity-30 scale-95 border-dashed border-[#6C63FF] shadow-inner'
+                              : 'border-[#E5E7F0] hover:shadow-md hover:-translate-y-0.5'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="min-w-0">
+                              <h3
+                                className="text-sm font-semibold leading-snug"
+                                style={{ color: '#2D2D3F', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                              >
+                                {task.title}
+                              </h3>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {task.tags.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="rounded-full px-2 py-1 text-[11px] font-medium"
+                                    style={{
+                                      backgroundColor: '#F3E8FF',
+                                      color: '#4A3A6B',
+                                      fontFamily: 'Nunito, sans-serif',
+                                    }}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                          <div
-                            className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1"
-                            style={{
-                              borderColor: priority.border,
-                              backgroundColor: priority.bg,
-                            }}
-                          >
-                            <span
-                              className="inline-flex h-6 w-6 items-center justify-center rounded-full"
+                            <div
+                              className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1"
                               style={{
+                                borderColor: priority.border,
                                 backgroundColor: priority.bg,
-                                color: priority.color,
-                                border: `1px solid ${priority.border}`,
                               }}
                             >
-                              <priority.Icon className="h-3.5 w-3.5" />
-                            </span>
-                            <span
-                              className="text-xs font-medium"
-                              style={{ color: priority.color, fontFamily: 'Nunito, sans-serif' }}
-                            >
-                              {task.priorityLabel}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between text-[13px] text-[#6B6B80]" style={{ fontFamily: 'Nunito, sans-serif' }}>
-                          <div className="flex flex-wrap items-center gap-3">
-                            <span className="inline-flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" style={{ color: '#6B6B80' }} />
-                              {task.date}
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <MessageSquare className="h-3.5 w-3.5" style={{ color: '#6B6B80' }} />
-                              {task.comments}
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <Link className="h-3.5 w-3.5" style={{ color: '#6B6B80' }} />
-                              {task.attachments}
-                            </span>
-                          </div>
-                          {task.hasResponsable ? (
-                            <div
-                              className="flex items-center gap-1.5 rounded-full bg-slate-100/80 pl-1 pr-2.5 py-0.5"
-                              title={task.ownerName}
-                            >
-                              <div
-                                className="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold shrink-0"
-                                style={{ backgroundColor: task.ownerColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
-                              >
-                                {task.ownerInitials}
-                              </div>
                               <span
-                                className="text-xs font-semibold text-[#4A3A6B] max-w-[100px] truncate"
-                                style={{ fontFamily: 'Nunito, sans-serif' }}
+                                className="inline-flex h-6 w-6 items-center justify-center rounded-full"
+                                style={{
+                                  backgroundColor: priority.bg,
+                                  color: priority.color,
+                                  border: `1px solid ${priority.border}`,
+                                }}
                               >
-                                {task.ownerName}
+                                <priority.Icon className="h-3.5 w-3.5" />
+                              </span>
+                              <span
+                                className="text-xs font-medium"
+                                style={{ color: priority.color, fontFamily: 'Nunito, sans-serif' }}
+                              >
+                                {task.priorityLabel}
                               </span>
                             </div>
-                          ) : (
-                            <div
-                              className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-slate-300 bg-slate-100"
-                              title="Sin asignar"
-                              aria-label="Sin responsable asignado"
-                            >
-                              <UserPlus className="h-4 w-4 text-slate-400" />
+                          </div>
+
+                          <div className="mt-4 flex items-center justify-between text-[13px] text-[#6B6B80]" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <span className="inline-flex items-center gap-1">
+                                <Calendar className="h-3.5 w-3.5" style={{ color: '#6B6B80' }} />
+                                {task.date}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <MessageSquare className="h-3.5 w-3.5" style={{ color: '#6B6B80' }} />
+                                {task.comments}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <Link className="h-3.5 w-3.5" style={{ color: '#6B6B80' }} />
+                                {task.attachments}
+                              </span>
                             </div>
-                          )}
+                            {task.hasResponsable ? (
+                              <div
+                                className="flex items-center gap-1.5 rounded-full bg-slate-100/80 pl-1 pr-2.5 py-0.5"
+                                title={task.ownerName}
+                              >
+                                <div
+                                  className="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold shrink-0"
+                                  style={{ backgroundColor: task.ownerColor, color: '#FFFFFF', fontFamily: 'Nunito, sans-serif' }}
+                                >
+                                  {task.ownerInitials}
+                                </div>
+                                <span
+                                  className="text-xs font-semibold text-[#4A3A6B] max-w-[100px] truncate"
+                                  style={{ fontFamily: 'Nunito, sans-serif' }}
+                                >
+                                  {task.ownerName}
+                                </span>
+                              </div>
+                            ) : (
+                              <div
+                                className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-slate-300 bg-slate-100"
+                                title="Sin asignar"
+                                aria-label="Sin responsable asignado"
+                              >
+                                <UserPlus className="h-4 w-4 text-slate-400" />
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </button>
-                    )
-                  })}
+                      )
+                    })}
+
+                    {draggedTaskId && isOver && (
+                      <div
+                        className="mt-3 rounded-2xl border-2 border-dashed p-4 text-center text-xs font-extrabold transition-all flex items-center justify-center gap-2 animate-pulse shadow-xs"
+                        style={{
+                          borderColor: column.accent,
+                          backgroundColor: `${column.accent}18`,
+                          color: column.accent,
+                        }}
+                      >
+                        Suelta aquí
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </section>
         ) : null}
       </main>
