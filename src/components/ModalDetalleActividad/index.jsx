@@ -1,4 +1,4 @@
-import { Calendar, Check, CheckCircle2, ExternalLink, FileText, Link2, MessageSquare, Paperclip, Save, Send, Trash2, User, X } from 'lucide-react'
+import { Calendar, Check, CheckCircle2, ChevronDown, ExternalLink, FileText, Link2, MessageSquare, Paperclip, Save, Send, Trash2, User, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useActivityDetail } from '../../hooks/useActivityDetail'
 
@@ -38,6 +38,7 @@ export default function ModalDetalleActividad({
   onUpdated,
 }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showMobileNotes, setShowMobileNotes] = useState(false)
 
   const {
     actividad,
@@ -474,8 +475,98 @@ export default function ModalDetalleActividad({
                 </div>
               </div>
 
-              {/* Columna Derecha ("Notas de seguimiento" - Estilo Figma) */}
-              <div className="flex w-full md:w-80 flex-shrink-0 flex-col border-t md:border-t-0 md:border-l border-slate-100 bg-white p-5 sm:p-6 min-h-0">
+              {/* Columna Derecha ("Notas de seguimiento") */}
+              {/* Mobile: Acordeón colapsable */}
+              <div className="md:hidden border-t border-slate-100 bg-white">
+                <button
+                  type="button"
+                  onClick={() => setShowMobileNotes((prev) => !prev)}
+                  className="flex w-full items-center justify-between px-5 py-4 cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-[#6C63FF]" />
+                    <span className="text-sm font-bold text-[#2D2342]">Notas de seguimiento</span>
+                    <span className="rounded-full bg-[#EEECFF] px-2.5 py-0.5 text-xs font-extrabold text-[#6C63FF]">
+                      {comentarios.length}
+                    </span>
+                  </div>
+                  <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${showMobileNotes ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showMobileNotes && (
+                  <div className="px-5 pb-5 space-y-4 animate-in slide-in-from-top-1 duration-200">
+                    {/* Lista de Comentarios */}
+                    <div className="max-h-60 overflow-y-auto space-y-4 pr-1 [scrollbar-width:thin]">
+                      {comentarios.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-6 text-center">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F7F5FF] mb-2 text-[#6C63FF]">
+                            <MessageSquare className="h-5 w-5" />
+                          </div>
+                          <p className="text-xs font-semibold text-slate-600">Sin notas aún</p>
+                          <p className="mt-1 text-[11px] text-slate-400 max-w-[200px]">
+                            Escribe notas o comentarios para darle seguimiento a esta actividad.
+                          </p>
+                        </div>
+                      ) : (
+                        comentarios.map((c, i) => {
+                          const u = Array.isArray(c.usuarios) ? c.usuarios[0] : c.usuarios
+                          const nombre = u?.nombre || u?.correo || 'Usuario'
+                          return (
+                            <div key={c.id_comentario || i} className="flex gap-2.5 text-xs">
+                              <div
+                                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-2xs mt-0.5"
+                                style={{ backgroundColor: getAvatarColor(i) }}
+                              >
+                                {getInitials(nombre)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-baseline gap-2 mb-1">
+                                  <span className="font-bold text-slate-800">{nombre}</span>
+                                  <span className="text-[10px] text-slate-400 font-normal">{formatDate(c.fecha_creacion)}</span>
+                                </div>
+                                <div className="rounded-2xl rounded-tl-xs bg-[#F7F5FF] p-3 text-xs text-slate-700 leading-relaxed border border-[#EFEBFF]">
+                                  {c.contenido}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+
+                    {/* Input de Comentarios */}
+                    <div className="border-t border-slate-100 pt-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#6C63FF] text-xs font-bold text-white shadow-2xs">
+                          TU
+                        </div>
+                        <div className="relative flex-1 flex items-center">
+                          <input
+                            type="text"
+                            value={nuevoComentario}
+                            onChange={(e) => setNuevoComentario(e.target.value)}
+                            placeholder="Escribe una nota..."
+                            onKeyDown={(e) => e.key === 'Enter' && nuevoComentario.trim() && handleAddComentario()}
+                            className="w-full rounded-2xl border border-slate-200 bg-white pl-4 pr-10 py-2.5 text-xs outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/10 transition placeholder:text-slate-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddComentario}
+                            disabled={!nuevoComentario.trim()}
+                            className="absolute right-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#F3F0FF] text-[#6C63FF] transition hover:bg-[#6C63FF] hover:text-white disabled:opacity-30 cursor-pointer"
+                            title="Enviar nota"
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop: Columna lateral fija (sin cambios) */}
+              <div className="hidden md:flex w-80 flex-shrink-0 flex-col border-l border-slate-100 bg-white p-6 min-h-0">
                 {/* Encabezado */}
                 <div className="mb-4 flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-2">
@@ -487,7 +578,7 @@ export default function ModalDetalleActividad({
                   </span>
                 </div>
 
-                {/* Lista de Comentarios (Burbujas de conversación Figma) */}
+                {/* Lista de Comentarios */}
                 <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0">
                   {comentarios.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center py-8 text-center">
@@ -526,7 +617,7 @@ export default function ModalDetalleActividad({
                   )}
                 </div>
 
-                {/* Input de Comentarios estilo Figma (Anclado abajo) */}
+                {/* Input de Comentarios */}
                 <div className="mt-4 border-t border-slate-100 pt-3 flex-shrink-0">
                   <div className="flex items-center gap-2">
                     <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#6C63FF] text-xs font-bold text-white shadow-2xs">
