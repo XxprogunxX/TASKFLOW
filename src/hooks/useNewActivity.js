@@ -36,6 +36,9 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
   const [success, setSuccess] = useState('')
   const [isLoadingResponsables, setIsLoadingResponsables] = useState(false)
 
+  const [pdfFiles, setPdfFiles] = useState([])
+  const [links, setLinks] = useState([])
+
   const resetForm = useCallback(() => {
     setTitle('')
     setDescription('')
@@ -45,6 +48,8 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     setTags([])
     setTagInput('')
     setDeliveryUrl('')
+    setPdfFiles([])
+    setLinks([])
     setSelectedResponsable(null)
     setError('')
     setSuccess('')
@@ -136,15 +141,69 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     setTags((current) => current.filter((tag) => tag !== tagToRemove))
   }, [])
 
-  const handleFileSelection = useCallback((event) => {
-    const filesFromInput = Array.from(event.target.files || [])
-    if (filesFromInput.length > 0) {
-      setFiles((current) => [...current, ...filesFromInput])
+  const handlePdfFileSelection = useCallback((fileList) => {
+    setError('')
+    const incomingFiles = Array.from(fileList || [])
+    if (incomingFiles.length === 0) return
+
+    const validPdfs = []
+    for (const file of incomingFiles) {
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+      if (!isPdf) {
+        setError('Solo se permite subir archivos PDF (.pdf) y enlaces.')
+        return
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setError(`El archivo "${file.name}" supera el tamaño máximo permitido de 10 MB.`)
+        return
+      }
+      validPdfs.push(file)
     }
+
+    setPdfFiles((current) => [...current, ...validPdfs])
   }, [])
 
-  const removeFile = useCallback((fileName) => {
-    setFiles((current) => current.filter((file) => file.name !== fileName))
+  const removePdfFile = useCallback((indexToRemove) => {
+    setPdfFiles((current) => current.filter((_, idx) => idx !== indexToRemove))
+  }, [])
+
+function isValidUrl(string) {
+  if (!string) return false
+  const trimmed = string.trim()
+  if (/\s/.test(trimmed)) return false
+  try {
+    const urlToTest = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+    const parsed = new URL(urlToTest)
+    const hostParts = parsed.hostname.split('.')
+    if (hostParts.length < 2) return false
+    const tld = hostParts[hostParts.length - 1]
+    return tld.length >= 2 && /^[a-zA-Z]+$/.test(tld)
+  } catch (e) {
+    return false
+  }
+}
+
+  const addLink = useCallback((urlToAdd) => {
+    setError('')
+    const trimmed = (urlToAdd || deliveryUrl).trim()
+    if (!trimmed) return
+
+    if (!isValidUrl(trimmed)) {
+      setError('Por favor, ingresa un enlace o URL válida (ej. https://drive.google.com/..., figma.com, etc.).')
+      return
+    }
+
+    let formattedUrl = trimmed
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+      formattedUrl = `https://${formattedUrl}`
+    }
+
+    setLinks((current) => (current.includes(formattedUrl) ? current : [...current, formattedUrl]))
+    setDeliveryUrl('')
+  }, [deliveryUrl])
+
+  const removeLink = useCallback((indexToRemove) => {
+    setLinks((current) => current.filter((_, idx) => idx !== indexToRemove))
   }, [])
 
   const handleSubmit = useCallback(async (event) => {
@@ -169,6 +228,21 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
 
     if (!dueDate) {
       setError('Por favor, selecciona una fecha límite de entrega para la actividad.')
+      return
+    }
+
+    if (dueDate) {
+      const selected = new Date(`${dueDate}T00:00:00`)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      if (selected < today) {
+        setError('La fecha límite no puede ser anterior a la fecha actual.')
+        return
+      }
+    }
+
+    if (deliveryUrl.trim() && !isValidUrl(deliveryUrl.trim())) {
+      setError('Por favor, ingresa un enlace o URL válida en el campo de enlace.')
       return
     }
 
@@ -200,7 +274,9 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
         throw new Error('No se encontró un proyecto activo para esta cuenta.')
       }
 
-      const descripcionConEtiquetas = [description.trim(), tags.length > 0 ? `Etiquetas: ${tags.join(', ')}` : '']
+      const allTags = [...tags, tagInput.trim()].filter(Boolean)
+      const uniqueTags = Array.from(new Set(allTags))
+      const descripcionConEtiquetas = [description.trim(), uniqueTags.length > 0 ? `Etiquetas: ${uniqueTags.join(', ')}` : '']
         .filter(Boolean)
         .join('\n\n')
 
@@ -222,23 +298,65 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
         throw actividadError
       }
 
-
       const actividadId = actividadData?.id_actividad
 
-      if (actividadId && deliveryUrl.trim()) {
-        let formattedUrl = deliveryUrl.trim()
-        if (!/^https?:\/\//i.test(formattedUrl)) {
-          formattedUrl = `https://${formattedUrl}`
+      if (actividadId) {
+        // Upload PDF Files
+        for (const pdfFile of pdfFiles) {
+          let fileUrl = ''
+          try {
+            const fileName = `${Date.now()}_${pdfFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+            const filePath = `actividades/${actividadId}/${fileName}`
+
+            const { error: uploadErr } = await supabase.storage
+              .from('evidencias')
+              .upload(filePath, pdfFile, { contentType: 'application/pdf', upsert: true })
+
+            if (!uploadErr) {
+              const { data: publicUrlData } = supabase.storage.from('evidencias').getPublicUrl(filePath)
+              fileUrl = publicUrlData?.publicUrl || ''
+            }
+          } catch (e) {
+            console.warn('Supabase storage upload fallback:', e)
+          }
+
+          if (!fileUrl) {
+            // Data URL fallback if storage bucket is not configured
+            fileUrl = await new Promise((resolve) => {
+              const reader = new FileReader()
+              reader.onload = (e) => resolve(e.target.result)
+              reader.onerror = () => resolve('')
+              reader.readAsDataURL(pdfFile)
+            })
+          }
+
+          if (fileUrl) {
+            await supabase.from('evidencias').insert({
+              id_actividad: actividadId,
+              url_evidencia: fileUrl,
+              descripcion: `PDF: ${pdfFile.name}`,
+            })
+          }
         }
 
-        const { error: evidenciaError } = await supabase.from('evidencias').insert({
-          id_actividad: actividadId,
-          url_evidencia: formattedUrl,
-          descripcion: 'Enlace de entrega',
-        })
+        // Insert Links
+        const allLinks = [...links]
+        if (deliveryUrl.trim()) {
+          let formattedUrl = deliveryUrl.trim()
+          if (!/^https?:\/\//i.test(formattedUrl)) {
+            formattedUrl = `https://${formattedUrl}`
+          }
+          if (!allLinks.includes(formattedUrl)) {
+            allLinks.push(formattedUrl)
+          }
+        }
 
-        if (evidenciaError) {
-          throw evidenciaError
+        for (const linkUrl of allLinks) {
+          await supabase.from('evidencias').insert({
+            id_actividad: actividadId,
+            url_evidencia: linkUrl,
+            descripcion: 'Enlace de evidencia',
+          })
         }
       }
 
@@ -253,7 +371,7 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     } finally {
       setIsSubmitting(false)
     }
-  }, [description, dueDate, estadoInicial, deliveryUrl, onActivityCreated, priority, resetForm, selectedResponsable, tags, title])
+  }, [description, dueDate, estadoInicial, deliveryUrl, links, pdfFiles, onActivityCreated, priority, resetForm, selectedResponsable, tags, title, propProyectoId])
 
   return {
     responsables,
@@ -275,6 +393,12 @@ export function useNewActivity({ isOpen, onActivityCreated, proyectoId: propProy
     setTagInput,
     deliveryUrl,
     setDeliveryUrl,
+    pdfFiles,
+    links,
+    handlePdfFileSelection,
+    removePdfFile,
+    addLink,
+    removeLink,
     addTag,
     removeTag,
     handleSubmit,

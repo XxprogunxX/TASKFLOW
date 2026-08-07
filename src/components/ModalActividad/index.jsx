@@ -7,6 +7,9 @@ import {
   X,
   Zap,
   Check,
+  Paperclip,
+  FileText,
+  Trash2,
 } from 'lucide-react'
 import { useNewActivity } from '../../hooks/useNewActivity'
 
@@ -70,6 +73,12 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
     setTagInput,
     deliveryUrl,
     setDeliveryUrl,
+    pdfFiles,
+    links,
+    handlePdfFileSelection,
+    removePdfFile,
+    addLink,
+    removeLink,
     addTag,
     removeTag,
     handleSubmit,
@@ -312,24 +321,113 @@ export default function NewActivityModal({ isOpen, onClose, onActivityCreated, p
             </p>
           </div>
 
+          {/* Evidencias (Solo PDF y Link) */}
           <div>
             <label className="mb-2 block text-sm font-semibold" style={{ color: '#2D2D3F', fontFamily: 'Nunito, sans-serif' }}>
-              Enlace de entrega
+              Evidencias
             </label>
-            <div className="relative">
-              <Link className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+            {/* Dropzone PDF */}
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault()
+                if (e.dataTransfer.files) {
+                  handlePdfFileSelection(e.dataTransfer.files)
+                }
+              }}
+              className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6 transition hover:border-[#6D5BD0] hover:bg-slate-50 cursor-pointer"
+            >
               <input
-                type="url"
-                value={deliveryUrl}
-                onChange={(event) => setDeliveryUrl(event.target.value)}
-                placeholder="ej. https://drive.google.com/..., https://github.com/..."
-                className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#6D5BD0]"
-                style={{ fontFamily: 'Nunito, sans-serif' }}
+                type="file"
+                accept=".pdf,application/pdf"
+                multiple
+                onChange={(e) => handlePdfFileSelection(e.target.files)}
+                className="absolute inset-0 z-10 cursor-pointer opacity-0"
               />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 mb-2">
+                <Paperclip className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold text-slate-700" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                Arrastra tu archivo PDF aquí o haz clic
+              </p>
+              <p className="mt-1 text-xs text-slate-400" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                Solo archivos PDF — máx 10 MB
+              </p>
             </div>
-            <p className="mt-2 text-xs text-slate-500" style={{ fontFamily: 'Nunito, sans-serif' }}>
-              Ingresa la URL del enlace de entrega del trabajo (ej. Google Drive, Figma, GitHub, etc.)
-            </p>
+
+            {/* PDF Files List */}
+            {pdfFiles.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {pdfFiles.map((file, idx) => (
+                  <div key={idx} className="flex items-center justify-between rounded-xl bg-purple-50/60 p-2.5 px-3 border border-purple-100">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <FileText className="h-4 w-4 text-[#6D5BD0] flex-shrink-0" />
+                      <span className="truncate text-xs font-semibold text-slate-700">{file.name}</span>
+                      <span className="text-[10px] text-slate-400 flex-shrink-0">({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removePdfFile(idx)}
+                      className="text-slate-400 hover:text-red-500 p-1 transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Enlace de evidencia */}
+            <div className="mt-4">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Link className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={deliveryUrl}
+                    onChange={(event) => setDeliveryUrl(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        addLink()
+                      }
+                    }}
+                    placeholder="ej. https://drive.google.com/..., https://github.com/..."
+                    className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#6D5BD0]"
+                    style={{ fontFamily: 'Nunito, sans-serif' }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => addLink()}
+                  className="rounded-xl bg-[#6D5BD0] px-4 text-xs font-bold text-white transition hover:bg-[#5B49BE]"
+                >
+                  Agregar enlace
+                </button>
+              </div>
+
+              {/* Links List */}
+              {links.length > 0 && (
+                <div className="mt-2 space-y-1.5">
+                  {links.map((linkStr, idx) => (
+                    <div key={idx} className="flex items-center justify-between rounded-xl bg-slate-50 p-2 text-xs text-slate-600 border border-slate-100">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <Link className="h-3.5 w-3.5 text-purple-600 flex-shrink-0" />
+                        <span className="truncate">{linkStr}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeLink(idx)}
+                        className="text-slate-400 hover:text-red-500 p-1 transition"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-4">

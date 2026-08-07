@@ -34,6 +34,14 @@ const formatDate = (value) => {
   }).format(date)
 }
 
+const normalizeEstadoKey = (raw) => {
+  const s = (raw || '').toLowerCase().trim()
+  if (s === 'en_progreso' || s === 'en_proceso' || s === 'en proceso') return 'en_progreso'
+  if (s === 'en_revision' || s === 'en_revisión' || s === 'en revisión') return 'en_revision'
+  if (s === 'completada' || s === 'completado') return 'completada'
+  return 'pendiente'
+}
+
 const mapResponsableToTaskOwner = (responsable) => {
   if (!responsable?.id_usuario && !responsable?.id) {
     return {
@@ -211,6 +219,7 @@ export function useBoard(selectedProyectoId = null) {
           .select(`
             id_actividad,
             titulo,
+            descripcion,
             prioridad,
             estado,
             fecha_limite,
@@ -236,9 +245,14 @@ export function useBoard(selectedProyectoId = null) {
             : actividad.responsable
           const prioridadRaw = (actividad.prioridad || '').toLowerCase()
           const prioridadConfigData = priorityConfig[prioridadRaw] || priorityConfig.media
-          const estadoRaw = (actividad.estado || '').toLowerCase()
-          const estadoKey = Object.keys(columnConfig).find((key) => key === estadoRaw) || 'pendiente'
+          const estadoKey = normalizeEstadoKey(actividad.estado)
           const ownerData = mapResponsableToTaskOwner(responsable)
+
+          const extractTagsFromDesc = (desc) => {
+            if (!desc) return []
+            const match = desc.match(/Etiquetas:\s*([^\n]+)/i)
+            return match && match[1] ? match[1].split(',').map((t) => t.trim()).filter(Boolean) : []
+          }
 
           return {
             id: actividad.id_actividad,
@@ -249,7 +263,7 @@ export function useBoard(selectedProyectoId = null) {
             date: formatDate(actividad.fecha_limite),
             comments: actividad.comentarios?.[0]?.count ?? 0,
             attachments: actividad.evidencias?.[0]?.count ?? 0,
-            tags: [],
+            tags: extractTagsFromDesc(actividad.descripcion),
             estado: estadoKey,
             ...ownerData,
           }
@@ -296,6 +310,63 @@ export function useBoard(selectedProyectoId = null) {
     }
   }, [refreshKey, selectedProyectoId])
 
+  /** Mueve una tarea a una nueva columna y persiste en Supabase */
+  const moveTaskToColumn = useCallback(async (taskId, targetColumnTitle) => {
+    const estadoMapReverse = {
+      'Pendiente': 'pendiente',
+      'En proceso': 'en_progreso',
+      'En revisión': 'en_revision',
+      'Completada': 'completada',
+    }
+    const nuevoEstado = estadoMapReverse[targetColumnTitle] || 'pendiente'
+
+    // Actualización optimista del estado local
+    setColumnas((current) => {
+      let movedTask = null
+      const cleaned = current.map((col) => {
+        const found = col.tasks.find((t) => t.id === taskId)
+        if (found) {
+          const estadoKey = Object.keys(columnConfig).find((k) => columnConfig[k].title === targetColumnTitle) || 'pendiente'
+          movedTask = { ...found, estado: estadoKey }
+        }
+        return {
+          ...col,
+          tasks: col.tasks.filter((t) => t.id !== taskId),
+        }
+      })
+
+      if (!movedTask) return current
+
+      const total = cleaned.reduce((acc, col) => acc + (col.title === targetColumnTitle ? col.tasks.length + 1 : col.tasks.length), 0)
+
+      return cleaned.map((col) => {
+        const isTarget = col.title === targetColumnTitle
+        const updatedTasks = isTarget ? [...col.tasks, movedTask] : col.tasks
+        const pct = total > 0 ? Math.round((updatedTasks.length / total) * 100) : 0
+        return {
+          ...col,
+          count: updatedTasks.length,
+          progress: pct,
+          tasks: updatedTasks,
+        }
+      })
+    })
+
+    // Sincronizar en base de datos
+    try {
+      const { error: updateErr } = await supabase
+        .from('actividades')
+        .update({ estado: nuevoEstado })
+        .eq('id_actividad', taskId)
+
+      if (updateErr) {
+        console.error('Error al actualizar estado en Supabase:', updateErr)
+      }
+    } catch (err) {
+      console.error('Error al mover la actividad:', err)
+    }
+  }, [])
+
   return {
     usuario,
     columnas,
@@ -305,5 +376,6 @@ export function useBoard(selectedProyectoId = null) {
     updateTaskResponsable,
     updateTaskFields,
     deleteTaskFromBoard,
+    moveTaskToColumn,
   }
 }

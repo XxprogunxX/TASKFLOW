@@ -1,4 +1,4 @@
-import { Calendar, Check, CheckCircle2, ExternalLink, Link2, MessageSquare, Paperclip, Save, Send, Trash2, User, X } from 'lucide-react'
+import { Calendar, Check, CheckCircle2, ExternalLink, FileText, Link2, MessageSquare, Paperclip, Save, Send, Trash2, User, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useActivityDetail } from '../../hooks/useActivityDetail'
 
@@ -50,6 +50,10 @@ export default function ModalDetalleActividad({
     setTitulo,
     descripcion,
     setDescripcion,
+    tags,
+    setTags,
+    addTag,
+    removeTag,
     estado,
     setEstado,
     prioridad,
@@ -70,6 +74,8 @@ export default function ModalDetalleActividad({
     handleGuardarCambios,
     handleAddComentario,
     handleAddEvidencia,
+    handleUploadPdfEvidencia,
+    handleDeleteEvidencia,
     handleDeleteActividad,
   } = useActivityDetail({
     actividadId,
@@ -86,6 +92,41 @@ export default function ModalDetalleActividad({
     onClose()
   }, [handleDeleteActividad, onClose])
 
+  const normalizeSt = (st) => {
+    const s = (st || '').toLowerCase().trim()
+    if (s === 'en_progreso' || s === 'en_proceso' || s === 'en proceso') return 'en proceso'
+    if (s === 'en_revision' || s === 'en_revisión' || s === 'en revisión') return 'en revisión'
+    if (s === 'completada' || s === 'completado') return 'completada'
+    return 'pendiente'
+  }
+
+  const extractTags = (desc = '') => {
+    if (!desc) return []
+    const match = desc.match(/(?:Etiquetas|Etiqueta|Tags|Tag):\s*([^\n]+)/i)
+    if (match && match[1]) {
+      return match[1].split(',').map((t) => t.trim()).filter(Boolean)
+    }
+    return []
+  }
+
+  const initialTagsStr = extractTags(actividad?.descripcion).sort().join(',')
+  const currentTagsStr = [...(tags || [])].sort().join(',')
+
+  const cleanActividadDesc = (actividad?.descripcion || '')
+    .replace(/(?:\r\n|\r|\n)*?(?:Etiquetas|Etiqueta|Tags|Tag):\s*[^\n]+/gi, '')
+    .trim()
+
+  const hasChanges = Boolean(
+    actividad &&
+      (titulo.trim() !== (actividad.titulo || '').trim() ||
+        (descripcion || '').trim() !== cleanActividadDesc ||
+        normalizeSt(estado) !== normalizeSt(actividad.estado) ||
+        (prioridad || '').toLowerCase() !== (actividad.prioridad || '').toLowerCase() ||
+        fechaLimite !== (actividad.fecha_limite ? actividad.fecha_limite.split('T')[0] : '') ||
+        String(selectedResponsableId || '') !== String(actividad.id_responsable || '') ||
+        currentTagsStr !== initialTagsStr)
+  )
+
   if (!isOpen || !actividadId) return null
 
   return (
@@ -95,19 +136,42 @@ export default function ModalDetalleActividad({
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-8 py-5">
-            <input
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
-              placeholder="Título de la actividad"
-              className="w-full text-xl font-extrabold text-[#2D2342] outline-none placeholder:text-slate-300"
-              style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            />
+          {/* Header (Estilo Figma) */}
+          <div className="flex items-start justify-between border-b border-slate-100 px-8 py-5">
+            <div className="flex-1 min-w-0">
+              <input
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
+                placeholder="Título de la actividad"
+                className="w-full text-xl font-extrabold text-[#2D2342] outline-none placeholder:text-slate-300"
+                style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              />
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {(tags || []).map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-[#ECE8FF] px-3 py-0.5 text-[11px] font-semibold text-[#6C63FF]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {hasChanges ? (
+                  <span className="rounded-full bg-[#FFF4E5] px-3 py-0.5 text-[11px] font-semibold text-[#D97706] flex items-center gap-1.5 border border-[#FFE8CC] animate-pulse">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
+                    Cambios sin guardar
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-[#F0FFF4] px-3 py-0.5 text-[11px] font-semibold text-[#38A169] flex items-center gap-1.5 border border-[#C6F6D5]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#38A169]" />
+                    Guardado
+                  </span>
+                )}
+              </div>
+            </div>
             <button
               type="button"
               onClick={onClose}
-              className="ml-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              className="ml-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -119,9 +183,9 @@ export default function ModalDetalleActividad({
           ) : !actividad ? (
             <div className="p-8 text-center text-sm text-slate-500">{error || 'No se encontró la actividad.'}</div>
           ) : (
-            <div className="flex flex-col md:flex-row flex-1 overflow-y-auto">
-              {/* Columna Izquierda */}
-              <div className="w-full md:flex-1 p-5 sm:p-8 space-y-6">
+            <div className="flex flex-col md:flex-row flex-1 min-h-0 min-w-0 overflow-hidden">
+              {/* Columna Izquierda (Scroll independiente) */}
+              <div className="w-full md:flex-1 p-5 sm:p-8 space-y-6 min-w-0 min-h-0 overflow-y-auto">
                 {error && <div className="rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-600">{error}</div>}
                 {success && (
                   <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 border border-emerald-200">
@@ -130,51 +194,95 @@ export default function ModalDetalleActividad({
                   </div>
                 )}
 
-                {/* Estado y Prioridad */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Estado, Prioridad y Fecha Límite (Diseño exacto de Figma) */}
+                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                  {/* Columna 1: ESTADO (Lista vertical) */}
                   <div>
-                    <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Estado</label>
-                    <select
-                      value={estado}
-                      onChange={(e) => setEstado(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-[#6C63FF]"
-                    >
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="En proceso">En proceso</option>
-                      <option value="En revisión">En revisión</option>
-                      <option value="Completada">Completada</option>
-                    </select>
+                    <label className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                      Estado
+                    </label>
+                    <div className="flex flex-col items-start gap-1.5">
+                      {[
+                        { label: 'Pendiente', dot: 'bg-[#6366F1]', activeStyle: 'border border-indigo-200 bg-indigo-50 text-indigo-600' },
+                        { label: 'En proceso', dot: 'bg-[#F59E0B]', activeStyle: 'border border-amber-200 bg-amber-50 text-amber-600' },
+                        { label: 'En revisión', dot: 'bg-[#E11D48]', activeStyle: 'border border-[#F43F5E] bg-[#FFF1F2] text-[#E11D48]' },
+                        { label: 'Completada', dot: 'bg-[#10B981]', activeStyle: 'border border-emerald-200 bg-emerald-50 text-emerald-600' },
+                      ].map((est) => {
+                        const isSelected = estado === est.label
+                        return (
+                          <button
+                            key={est.label}
+                            type="button"
+                            onClick={() => setEstado(est.label)}
+                            className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                              isSelected
+                                ? `${est.activeStyle} shadow-2xs font-bold`
+                                : 'border border-transparent text-slate-500 hover:bg-slate-50'
+                            }`}
+                          >
+                            <span className={`h-2 w-2 rounded-full ${est.dot}`} />
+                            {est.label}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Prioridad</label>
-                    <select
-                      value={prioridad}
-                      onChange={(e) => setPrioridad(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-[#6C63FF]"
-                    >
-                      <option value="Alta">Alta</option>
-                      <option value="Media">Media</option>
-                      <option value="Baja">Baja</option>
-                    </select>
+                  {/* Columna 2: PRIORIDAD + FECHA LÍMITE */}
+                  <div className="space-y-4">
+                    {/* Prioridad (Lista vertical) */}
+                    <div>
+                      <label className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
+                        Prioridad
+                      </label>
+                      <div className="flex flex-col items-start gap-1.5">
+                        {[
+                          { label: 'Alta', dot: 'bg-[#E53E3E]', activeStyle: 'border border-[#E53E3E] bg-[#FFF5F5] text-[#E53E3E]' },
+                          { label: 'Media', dot: 'bg-[#D69E2E]', activeStyle: 'border border-[#D69E2E] bg-[#FFFBEB] text-[#D69E2E]' },
+                          { label: 'Baja', dot: 'bg-[#38A169]', activeStyle: 'border border-[#38A169] bg-[#F0FFF4] text-[#38A169]' },
+                        ].map((prio) => {
+                          const isSelected = prioridad === prio.label
+                          return (
+                            <button
+                              key={prio.label}
+                              type="button"
+                              onClick={() => setPrioridad(prio.label)}
+                              className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                                isSelected
+                                  ? `${prio.activeStyle} shadow-2xs font-bold`
+                                  : 'border border-transparent text-[#6B6B80] hover:bg-slate-50'
+                              }`}
+                            >
+                              <span className={`h-2 w-2 rounded-full ${prio.dot}`} />
+                              {prio.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Fecha Límite (Justo debajo de Prioridad) */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
+                        Fecha límite
+                      </label>
+                      <input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        value={fechaLimite}
+                        onChange={(e) => setFechaLimite(e.target.value)}
+                        className="w-full sm:w-auto rounded-2xl border border-[#E2E8F0] bg-white px-4 py-1.5 text-xs font-semibold text-[#2D2D3F] outline-none focus:border-[#6C63FF]"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Fecha Limite */}
+                {/* Responsable (Avatares horizontales estilo Figma) */}
                 <div>
-                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Fecha límite</label>
-                  <input
-                    type="date"
-                    value={fechaLimite}
-                    onChange={(e) => setFechaLimite(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none focus:border-[#6C63FF]"
-                  />
-                </div>
-
-                {/* Responsable */}
-                <div>
-                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Responsable</label>
-                  <div className="flex flex-wrap gap-2">
+                  <label className="mb-2.5 block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
+                    Responsable
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
                     {miembros.map((m, idx) => {
                       const isSelected = selectedResponsableId === String(m.id)
                       return (
@@ -182,8 +290,10 @@ export default function ModalDetalleActividad({
                           key={m.id}
                           type="button"
                           onClick={() => setSelectedResponsableId(String(m.id))}
-                          className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white transition ${
-                            isSelected ? 'ring-2 ring-[#6C63FF] ring-offset-2' : ''
+                          className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white transition cursor-pointer ${
+                            isSelected
+                              ? 'ring-2 ring-[#E53E3E] ring-offset-2 scale-105 shadow-xs'
+                              : 'hover:scale-105 opacity-80 hover:opacity-100'
                           }`}
                           style={{ backgroundColor: getAvatarColor(idx) }}
                           title={m.nombre}
@@ -193,72 +303,162 @@ export default function ModalDetalleActividad({
                       )
                     })}
                   </div>
+                  {/* Nombre del responsable seleccionado */}
+                  {selectedResponsableId && (
+                    <p className="mt-2 text-xs font-semibold text-[#2D2D3F]">
+                      {miembros.find((m) => String(m.id) === String(selectedResponsableId))?.nombre || ''}
+                    </p>
+                  )}
                 </div>
 
                 {/* Descripción */}
                 <div>
-                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Descripción</label>
+                  <label className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
+                    Descripción
+                  </label>
                   <textarea
                     rows={3}
                     value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
                     placeholder="Detalles sobre esta actividad..."
-                    className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-[#6C63FF]"
+                    className="w-full rounded-2xl border border-[#E2E8F0] bg-white p-4 text-xs font-medium text-[#2D2D3F] outline-none focus:border-[#6C63FF] placeholder:text-[#6B6B80]/50 leading-relaxed"
                   />
                 </div>
 
-                {/* Enlace de entrega */}
+                {/* Evidencias (Conservando Dropzone PDF y Enlaces) */}
                 <div>
-                  <label className="mb-2 block text-xs font-extrabold uppercase text-slate-400">Enlace de entrega</label>
-                  <div className="flex gap-2">
+                  <div className="mb-2 flex items-center justify-between">
+                    <label className="block text-xs font-extrabold uppercase tracking-wider text-[#6B6B80]">
+                      Enlace de evidencia / Evidencias
+                    </label>
+                    <span className="text-[11px] font-semibold text-[#6B6B80] flex items-center gap-1">
+                      <Paperclip className="h-3 w-3" />
+                      {evidencias.length} archivo(s) adjunto(s)
+                    </span>
+                  </div>
+
+                  {/* Dropzone PDF */}
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      if (e.dataTransfer.files) {
+                        handleUploadPdfEvidencia(e.dataTransfer.files)
+                      }
+                    }}
+                    className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#E2E8F0] bg-[#FFF5F7]/40 p-4 transition hover:border-[#6C63FF] hover:bg-[#FFF5F7]/80 cursor-pointer mb-3"
+                  >
                     <input
-                      type="url"
-                      value={nuevaEvidenciaUrl}
-                      onChange={(e) => setNuevaEvidenciaUrl(e.target.value)}
-                      placeholder="ej. https://drive.google.com/..."
-                      className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#6C63FF]"
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      multiple
+                      onChange={(e) => handleUploadPdfEvidencia(e.target.files)}
+                      className="absolute inset-0 z-10 cursor-pointer opacity-0"
                     />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#6C63FF] shadow-2xs mb-1">
+                      <Paperclip className="h-4 w-4" />
+                    </div>
+                    <p className="text-xs font-semibold text-[#2D2D3F]">
+                      Arrastra tu archivo PDF aquí o haz clic
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-[#6B6B80]">
+                      Solo archivos PDF — máx 10 MB
+                    </p>
+                  </div>
+
+                  {/* Input de Enlace (Estilo Figma) */}
+                  <div className="flex gap-2 mb-3">
+                    <div className="relative flex-1">
+                      <Link2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B80]" />
+                      <input
+                        type="text"
+                        value={nuevaEvidenciaUrl}
+                        onChange={(e) => setNuevaEvidenciaUrl(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleAddEvidencia()
+                          }
+                        }}
+                        placeholder="https://..."
+                        className="w-full rounded-2xl border border-[#E2E8F0] bg-white pl-9 pr-3 py-2.5 text-xs outline-none focus:border-[#6C63FF] placeholder:text-[#6B6B80]/40 text-[#2D2D3F]"
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={handleAddEvidencia}
                       disabled={!nuevaEvidenciaUrl.trim()}
-                      className="rounded-xl bg-[#6C63FF] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer"
+                      className="rounded-2xl bg-[#6C63FF] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer shadow-xs"
                     >
                       Agregar enlace
                     </button>
                   </div>
+
+                  {/* Lista de Evidencias */}
                   {evidencias.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {evidencias.map((ev, i) => (
-                        <a
-                          key={i}
-                          href={ev.url_evidencia || ev.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 text-xs text-purple-700 hover:underline"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          <span className="truncate">{ev.descripcion || ev.url_evidencia || ev.url}</span>
-                        </a>
-                      ))}
+                    <div className="space-y-2 min-w-0">
+                      {evidencias.map((ev, i) => {
+                        const targetUrl = ev.url_evidencia || ev.url || '#'
+                        const isPdf = targetUrl.toLowerCase().includes('.pdf') || ev.descripcion?.toLowerCase().includes('pdf')
+                        const labelText = (ev.descripcion && ev.descripcion !== 'Enlace de evidencia') ? ev.descripcion : targetUrl
+                        return (
+                          <div
+                            key={ev.id_evidencia || ev.id || i}
+                            className="flex items-center justify-between gap-3 rounded-2xl bg-white border border-[#E2E8F0] px-3.5 py-2.5 text-xs transition hover:border-[#6C63FF]/40 min-w-0 shadow-2xs"
+                          >
+                            <a
+                              href={targetUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-3 flex-1 min-w-0 group"
+                            >
+                              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[#FFF5F7] text-[#6C63FF] shadow-2xs border border-[#E2E8F0] group-hover:scale-105 transition-transform">
+                                {isPdf ? <FileText className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                              </div>
+                              
+                              <div className="flex flex-col flex-1 min-w-0">
+                                <span className="block truncate font-bold text-[#2D2D3F] group-hover:text-[#6C63FF] transition-colors">
+                                  {labelText}
+                                </span>
+                                <span className="block text-[10px] font-semibold text-[#6B6B80] uppercase tracking-wider mt-0.5">
+                                  {isPdf ? 'Documento PDF' : 'Enlace Web'}
+                                </span>
+                              </div>
+                            </a>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleDeleteEvidencia(ev)
+                              }}
+                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-[#6B6B80] transition hover:bg-[#FFF5F5] hover:text-[#E53E3E] cursor-pointer"
+                              title="Eliminar evidencia"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
 
-                {/* Botones de Acción */}
-                <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+                {/* Botones de Acción (Estilo Figma exacto) */}
+                <div className="flex items-center justify-between border-t border-[#E2E8F0] pt-5">
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-1 text-xs font-bold text-red-500 hover:text-red-700"
+                    className="flex items-center gap-1.5 rounded-full border border-[#E53E3E]/30 bg-white px-5 py-2.5 text-xs font-bold text-[#E53E3E] transition hover:bg-[#FFF5F5] cursor-pointer"
                   >
-                    <Trash2 className="h-4 w-4" /> Eliminar
+                    <X className="h-4 w-4" /> Eliminar
                   </button>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                      className="rounded-full border border-[#E2E8F0] bg-white px-5 py-2.5 text-xs font-bold text-[#6B6B80] transition hover:bg-slate-50 cursor-pointer"
                     >
                       Cancelar
                     </button>
@@ -266,59 +466,94 @@ export default function ModalDetalleActividad({
                       type="button"
                       onClick={handleGuardarCambios}
                       disabled={isSaving}
-                      className="rounded-xl bg-[#6C63FF] px-5 py-2 text-xs font-bold text-white shadow-md transition hover:bg-[#5A52E0] disabled:opacity-50 cursor-pointer"
+                      className="flex items-center gap-2 rounded-full px-6 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50 cursor-pointer"
+                      style={{ background: 'linear-gradient(135deg, #6C63FF 0%, #4A3A6B 100%)' }}
                     >
+                      <Check className="h-4 w-4" />
                       {isSaving ? 'Guardando...' : 'Guardar cambios'}
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Columna Derecha (Notas / Comentarios) */}
-              <div className="flex w-full md:w-80 flex-shrink-0 flex-col border-t md:border-t-0 md:border-l border-slate-100 bg-slate-50/50 p-5 sm:p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-700">Notas ({comentarios.length})</span>
+              {/* Columna Derecha ("Notas de seguimiento" - Estilo Figma) */}
+              <div className="flex w-full md:w-80 flex-shrink-0 flex-col border-t md:border-t-0 md:border-l border-slate-100 bg-white p-5 sm:p-6 min-h-0">
+                {/* Encabezado */}
+                <div className="mb-4 flex items-center justify-between flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-[#6C63FF]" />
+                    <span className="text-sm font-bold text-[#2D2342]">Notas de seguimiento</span>
+                  </div>
+                  <span className="rounded-full bg-[#EEECFF] px-2.5 py-0.5 text-xs font-extrabold text-[#6C63FF]">
+                    {comentarios.length}
+                  </span>
                 </div>
 
-                {/* Lista de Comentarios */}
-                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                {/* Lista de Comentarios (Burbujas de conversación Figma) */}
+                <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0">
                   {comentarios.length === 0 ? (
-                    <p className="py-8 text-center text-xs text-slate-400">Sin notas aún.</p>
+                    <div className="flex h-full flex-col items-center justify-center py-8 text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F7F5FF] mb-3 text-[#6C63FF]">
+                        <MessageSquare className="h-6 w-6" />
+                      </div>
+                      <p className="text-xs font-semibold text-slate-600">Sin notas aún</p>
+                      <p className="mt-1 text-[11px] text-slate-400 max-w-[180px]">
+                        Escribe notas o comentarios para darle seguimiento a esta actividad.
+                      </p>
+                    </div>
                   ) : (
                     comentarios.map((c, i) => {
                       const u = Array.isArray(c.usuarios) ? c.usuarios[0] : c.usuarios
                       const nombre = u?.nombre || u?.correo || 'Usuario'
                       return (
-                        <div key={c.id_comentario || i} className="rounded-2xl bg-white p-3 shadow-xs border border-slate-100">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-bold text-purple-900">{nombre}</span>
-                            <span className="text-[10px] text-slate-400">{formatDate(c.fecha_creacion)}</span>
+                        <div key={c.id_comentario || i} className="flex gap-2.5 text-xs">
+                          <div
+                            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-2xs mt-0.5"
+                            style={{ backgroundColor: getAvatarColor(i) }}
+                          >
+                            {getInitials(nombre)}
                           </div>
-                          <p className="text-xs text-slate-600">{c.contenido}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline gap-2 mb-1">
+                              <span className="font-bold text-slate-800">{nombre}</span>
+                              <span className="text-[10px] text-slate-400 font-normal">{formatDate(c.fecha_creacion)}</span>
+                            </div>
+                            <div className="rounded-2xl rounded-tl-xs bg-[#F7F5FF] p-3 text-xs text-slate-700 leading-relaxed border border-[#EFEBFF]">
+                              {c.contenido}
+                            </div>
+                          </div>
                         </div>
                       )
                     })
                   )}
                 </div>
 
-                {/* Input de Comentarios */}
-                <div className="mt-4 flex gap-2">
-                  <input
-                    type="text"
-                    value={nuevoComentario}
-                    onChange={(e) => setNuevoComentario(e.target.value)}
-                    placeholder="Escribe una nota..."
-                    onKeyDown={(e) => e.key === 'Enter' && nuevoComentario.trim() && handleAddComentario()}
-                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#6C63FF]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddComentario}
-                    disabled={!nuevoComentario.trim()}
-                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#6C63FF] text-white transition hover:bg-[#5A52E0] disabled:opacity-40 cursor-pointer"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                  </button>
+                {/* Input de Comentarios estilo Figma (Anclado abajo) */}
+                <div className="mt-4 border-t border-slate-100 pt-3 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#6C63FF] text-xs font-bold text-white shadow-2xs">
+                      TU
+                    </div>
+                    <div className="relative flex-1 flex items-center">
+                      <input
+                        type="text"
+                        value={nuevoComentario}
+                        onChange={(e) => setNuevoComentario(e.target.value)}
+                        placeholder="Escribe una nota... (Enter para enviar)"
+                        onKeyDown={(e) => e.key === 'Enter' && nuevoComentario.trim() && handleAddComentario()}
+                        className="w-full rounded-2xl border border-slate-200 bg-white pl-4 pr-10 py-2.5 text-xs outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/10 transition placeholder:text-slate-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddComentario}
+                        disabled={!nuevoComentario.trim()}
+                        className="absolute right-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#F3F0FF] text-[#6C63FF] transition hover:bg-[#6C63FF] hover:text-white disabled:opacity-30 cursor-pointer"
+                        title="Enviar nota"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
