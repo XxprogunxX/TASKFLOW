@@ -50,6 +50,7 @@ export default function BoardPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [draggedTaskId, setDraggedTaskId] = useState(null)
   const [dragOverColumnTitle, setDragOverColumnTitle] = useState(null)
+  const [activeMobileTab, setActiveMobileTab] = useState('all')
 
   const {
     usuario,
@@ -97,45 +98,59 @@ export default function BoardPage() {
       <Header usuario={usuario} />
 
       <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
-        <div className="mb-6 rounded-3xl bg-white p-6 shadow-xs sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1
-                className="text-2xl font-bold tracking-tight sm:text-3xl"
-                style={{ color: '#2D2D3F', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-              >
-                Tablero del Proyecto
-              </h1>
-              <p
-                className="mt-1 text-sm font-semibold uppercase tracking-wider"
-                style={{ color: '#6D5BD0', fontFamily: 'Nunito, sans-serif' }}
-              >
-                {usuario?.sinProyectos ? 'Sin proyecto activo' : usuario?.proyectoNombre}
-              </p>
-            </div>
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/70 pb-5">
+          <div>
+            <h1
+              className="text-xl font-bold tracking-tight sm:text-2xl"
+              style={{ color: '#2D2D3F', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              Tablero del Proyecto
+            </h1>
+            <p
+              className="mt-0.5 text-sm font-medium"
+              style={{ color: '#6B6B80', fontFamily: 'Nunito, sans-serif' }}
+            >
+              {usuario?.sinProyectos ? 'Sin proyecto activo' : usuario?.proyectoNombre}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
             {usuario?.sinProyectos ? (
               <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
                 Selecciona o crea un proyecto en "Mis Tableros"
               </span>
             ) : null}
-          </div>
-
-          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:w-80">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <div className="relative">
+              <button
+                onClick={() => {
+                  const el = document.getElementById('board-search-input')
+                  if (el) {
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none'
+                    if (el.style.display === 'block') el.focus()
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:border-slate-300 cursor-pointer"
+                style={{ fontFamily: 'Nunito, sans-serif' }}
+              >
+                <Search className="h-4 w-4" />
+                Buscar
+              </button>
               <input
+                id="board-search-input"
                 type="text"
-                placeholder="Buscar"
+                placeholder="Buscar tarea..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-2xl border border-[#E5E7F0] bg-white pl-10 pr-4 py-2.5 text-sm outline-none transition focus:border-[#6D5BD0] focus:ring-2 focus:ring-[#6D5BD0]/20"
-                style={{ color: '#2D2D3F', fontFamily: 'Nunito, sans-serif' }}
+                onBlur={(e) => {
+                  if (!e.target.value) e.target.style.display = 'none'
+                }}
+                style={{ display: 'none', fontFamily: 'Nunito, sans-serif' }}
+                className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm shadow-lg outline-none focus:border-[#6D5BD0] focus:ring-2 focus:ring-[#6D5BD0]/20 z-10"
               />
             </div>
             <button
               onClick={() => handleOpenNewTaskModal('Pendiente')}
               disabled={usuario?.sinProyectos || isLoading}
-              className={`inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition ${
+              className={`inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition ${
                 usuario?.sinProyectos || isLoading
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:opacity-95 cursor-pointer'
@@ -147,7 +162,7 @@ export default function BoardPage() {
               }}
               title={usuario?.sinProyectos ? 'Crea un proyecto primero para poder añadir tareas' : 'Nueva tarea'}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-1.5 h-4 w-4" />
               Nueva tarea
             </button>
           </div>
