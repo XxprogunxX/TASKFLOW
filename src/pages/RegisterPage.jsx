@@ -68,18 +68,34 @@ export default function RegisterPage({ onRegisterSuccess }) {
           </div>
         </section>
 
-        <section className="w-full md:w-1/2 flex items-center justify-center bg-[#FFF5F7] px-6 py-16">
+        <section className="w-full md:w-1/2 flex items-center justify-center bg-[#FFF7F8] px-6 py-12">
           <div className="w-full max-w-md">
-            <h2 className="text-3xl font-extrabold text-[#4A3A6B] mb-2 tracking-tight" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+            {/* Control de Pestañas (Estilo Figma: Iniciar sesión / Crear cuenta) */}
+            <div className="mx-auto mb-8 flex w-full max-w-sm rounded-full bg-[#F3EFFF] p-1.5 shadow-inner">
+              <Link
+                to="/login"
+                className="flex-1 rounded-full py-2.5 text-center text-sm font-semibold text-[#8E8A9F] transition-all hover:text-[#6C63FF]"
+              >
+                Iniciar sesión
+              </Link>
+              <button
+                type="button"
+                className="flex-1 rounded-full bg-white py-2.5 text-center text-sm font-bold text-[#6C63FF] shadow-sm transition-all"
+              >
+                Crear cuenta
+              </button>
+            </div>
+
+            <h2 className="text-3xl font-extrabold text-[#2D2342] mb-2 tracking-tight" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
               Crear cuenta
             </h2>
-            <p className="text-[#6B6B80] mb-8 text-base font-normal" style={{ fontFamily: 'Nunito, sans-serif' }}>
+            <p className="text-[#7C7890] mb-8 text-sm font-normal" style={{ fontFamily: 'Nunito, sans-serif' }}>
               Completa el formulario para unirte al sistema
             </p>
 
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="fullName" className="block text-sm font-semibold text-[#2D2D3F] mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                <label htmlFor="fullName" className="block text-sm font-bold text-[#2D2342] mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
                   Nombre completo <span className="text-[#E53E3E]">*</span>
                 </label>
                 <input
@@ -89,7 +105,7 @@ export default function RegisterPage({ onRegisterSuccess }) {
                   placeholder="ej. María García"
                   value={values.fullName}
                   onChange={handleChange}
-                  className={`w-full rounded-xl border ${errors.fullName ? 'border-red-400' : 'border-gray-200'} bg-white px-4 py-3 text-[#2D2D3F] outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20`}
+                  className={`w-full rounded-2xl border ${errors.fullName ? 'border-red-400' : 'border-[#E8E5F2]'} bg-[#FAFAFD] px-4 py-3.5 text-[#2D2342] outline-none focus:border-[#6C63FF] focus:bg-white focus:ring-2 focus:ring-[#6C63FF]/20`}
                   style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.875rem' }}
                 />
                 {errors.fullName && (
@@ -101,7 +117,7 @@ export default function RegisterPage({ onRegisterSuccess }) {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-[#2D2D3F] mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                <label htmlFor="email" className="block text-sm font-bold text-[#2D2342] mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
                   Correo electrónico <span className="text-[#E53E3E]">*</span>
                 </label>
                 <input
@@ -111,7 +127,7 @@ export default function RegisterPage({ onRegisterSuccess }) {
                   placeholder="tu@escuela.edu.mx"
                   value={values.email}
                   onChange={handleChange}
-                  className={`w-full rounded-xl border ${errors.email ? 'border-red-400' : 'border-gray-200'} bg-white px-4 py-3 text-[#2D2D3F] outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20`}
+                  className={`w-full rounded-2xl border ${errors.email ? 'border-red-400' : 'border-[#E8E5F2]'} bg-[#FAFAFD] px-4 py-3.5 text-[#2D2342] outline-none focus:border-[#6C63FF] focus:bg-white focus:ring-2 focus:ring-[#6C63FF]/20`}
                   style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.875rem' }}
                 />
                 {errors.email && (
@@ -123,7 +139,7 @@ export default function RegisterPage({ onRegisterSuccess }) {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-[#2D2D3F] mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                <label htmlFor="password" className="block text-sm font-bold text-[#2D2342] mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
                   Contraseña <span className="text-[#E53E3E]">*</span>
                 </label>
                 <div className="relative">
@@ -134,13 +150,13 @@ export default function RegisterPage({ onRegisterSuccess }) {
                     placeholder="Mínimo 6 caracteres"
                     value={values.password}
                     onChange={handleChange}
-                    className={`w-full rounded-xl border ${errors.password ? 'border-red-400' : 'border-gray-200'} bg-white pl-4 pr-12 py-3 text-[#2D2D3F] outline-none focus:border-[#6d5bd0] focus:ring-2 focus:ring-[#6d5bd0]/20`}
+                    className={`w-full rounded-2xl border ${errors.password ? 'border-red-400' : 'border-[#E8E5F2]'} bg-[#FAFAFD] pl-4 pr-12 py-3.5 text-[#2D2342] outline-none focus:border-[#6C63FF] focus:bg-white focus:ring-2 focus:ring-[#6C63FF]/20`}
                     style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.875rem' }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#6d5bd0] transition"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#6C63FF] transition"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -154,7 +170,7 @@ export default function RegisterPage({ onRegisterSuccess }) {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-[#2D2D3F] mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
+                <label htmlFor="confirmPassword" className="block text-sm font-bold text-[#2D2342] mb-2" style={{ fontFamily: 'Nunito, sans-serif' }}>
                   Confirmar contraseña <span className="text-[#E53E3E]">*</span>
                 </label>
                 <div className="relative">
